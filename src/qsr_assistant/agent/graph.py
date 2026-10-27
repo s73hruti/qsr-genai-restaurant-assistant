@@ -166,7 +166,7 @@ class GraphAgent:
 
     def _critic(self, s: State) -> dict:
         tool_msgs = [m for m in s["messages"] if m.role == "tool"]
-        draft = s.get("draft") or (OfflineClient._compose(tool_msgs) if tool_msgs else NO_INFO)
+        draft = s.get("draft") or (OfflineClient._compose(tool_msgs, query=s.get("query")) if tool_msgs else NO_INFO)
         evidence = "\n".join(m.content for m in tool_msgs)
         oc = check_output(draft, evidence, s["query"], s["mode"], self._shingles, s["system"])
         guard = dict(s["guard"])
@@ -191,7 +191,7 @@ class GraphAgent:
             elif s.get("blocked") and "manager_leak" in guard["output"]:
                 answer = REFUSAL
             else:
-                answer = OfflineClient._compose(tool_msgs) if tool_msgs else NO_INFO
+                answer = OfflineClient._compose(tool_msgs, query=s.get("query")) if tool_msgs else NO_INFO
             guard["output"].append("answer_replaced")
         return {"answer": answer, "guard": guard}
 

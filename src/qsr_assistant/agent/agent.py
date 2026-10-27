@@ -231,7 +231,7 @@ class Agent:
 
             tool_msgs = [m for m in messages if m.role == "tool"]
             if not final_text:  # step budget exhausted or empty model output
-                final_text = OfflineClient._compose(tool_msgs) if tool_msgs else NO_INFO
+                final_text = OfflineClient._compose(tool_msgs, query=ic.text) if tool_msgs else NO_INFO
 
             # ---- 4. output guardrails
             evidence = "\n".join(m.content for m in tool_msgs)
@@ -246,7 +246,7 @@ class Agent:
                 elif blocked and "manager_leak" in oc.flags:
                     answer = REFUSAL
                 else:
-                    answer = OfflineClient._compose(tool_msgs) if tool_msgs else NO_INFO
+                    answer = OfflineClient._compose(tool_msgs, query=ic.text) if tool_msgs else NO_INFO
                 guard["output"].append("answer_replaced")
 
             sources = [h for r in tools_log if r["name"] == "search_knowledge"

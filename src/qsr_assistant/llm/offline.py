@@ -42,7 +42,11 @@ class OfflineClient(BaseClient):
                 if m.role != "tool":
                     break
                 tool_msgs.append(m)
-            text = self._compose(list(reversed(tool_msgs)))
+            query = next(
+                (m.content for m in reversed(messages) if m.role == "user"),
+                None,
+            )
+            text = self._compose(list(reversed(tool_msgs)), query=query)
             usage.output_tokens = _tokens(text)
             return LLMResponse(text, [], usage, "end_turn", self.model)
         question = last.content
@@ -71,8 +75,23 @@ class OfflineClient(BaseClient):
         raise RuntimeError("OfflineClient cannot do free-form completion")
 
     @staticmethod
-    def _compose(tool_msgs: list[Message]) -> str:
+    def _wants_multiple_results(query: str | None) -> bool:
+        if not query:
+            return False
+        q = " ".join(query.lower().split())
+        return bool(re.search(
+            r"\b(list|show me|options|varieties|types)\b|"
+            r"\bwhat\s+(?:are\s+)?(?:burgers?|drinks?|sides|desserts|menu items?)\b|"
+            r"\bwhich\b.*\b(available|burgers?|drinks?|sides|desserts|menu items?)\b|"
+            r"\ball available\b|"
+            r"\bwhat\b.*\bavailable\b",
+            q,
+        ))
+
+    @staticmethod
+    def _compose(tool_msgs: list[Message], query: str | None = None) -> str:
         parts: list[str] = []
+        multiple = OfflineClient._wants_multiple_results(query)
         for m in tool_msgs:
             d = m.data or {}
             if d.get("denied"):
@@ -82,9 +101,10 @@ class OfflineClient(BaseClient):
                 if d.get("low_confidence") or not hits:
                     parts.append(NO_INFO)
                 else:
-                    top = hits[0]
-                    body = top["text"].replace("\n", " ")
-                    parts.append(f"{body} [{top['doc_id']}]")
+                    selected = hits if multiple else hits[:1]
+                    for hit in selected:
+                        body = hit["text"].replace("\\n", " ")
+                        parts.append(f"{body} [{hit['doc_id']}]")
             else:
                 parts.append(m.content)
         seen, out = set(), []
@@ -92,4 +112,4 @@ class OfflineClient(BaseClient):
             if p not in seen:
                 seen.add(p)
                 out.append(p)
-        return "\n\n".join(out) or NO_INFO
+        return "\\n\\n".join(out) or NO_INFO
