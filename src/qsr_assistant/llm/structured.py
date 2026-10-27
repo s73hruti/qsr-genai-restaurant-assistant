@@ -72,7 +72,7 @@ _RULES = [
     ("allergen_safety", r"allerg|anaphyla|gluten|nut\b|peanut|sick|food poison"),
     ("wrong_or_missing_item", r"wrong|missing|forgot|incorrect|not what i ordered"),
     ("food_quality", r"cold|stale|burn|raw|undercooked|soggy|taste|hair in|dirty"),
-    ("wait_time", r"wait|slow|queue|took (an? )?(hour|forever|ages)|\blong time"),
+    ("wait_time", r"wait|slow|queue|took (an? )?(hour|forever|ages)|\blong time|\blate delivery\b|\border (?:was|arrived|came) late\b|\bdelivery delayed\b|\border delayed\b"),
     ("app_or_payment", r"\bapp\b|charged|payment|card|login|crash|double[- ]charged"),
     ("staff_behaviour", r"rude|staff|manager was|ignored|shout"),
 ]
@@ -93,8 +93,13 @@ def rule_extract_ticket(text: str) -> Ticket:
             items.append(it)
             seen.add(it)
     high = category == "allergen_safety" or bool(re.search(r"hospital|ambulance|injur|police", low))
-    severity = "high" if high else ("medium" if category in ("wrong_or_missing_item", "food_quality",
-                                                               "app_or_payment") else "low")
+    late_delivery = bool(re.search(
+        r"\blate delivery\b|\border (?:was|arrived|came) late\b|"
+        r"\bdelivery delayed\b|\border delayed\b", low
+    ))
+    severity = "high" if high else ("medium" if category in (
+        "wrong_or_missing_item", "food_quality", "app_or_payment"
+    ) or late_delivery else "low")
     summary = " ".join(text.split())[:200]
     return Ticket(category=category, severity=severity, store_id=store, items=items,
                   summary=summary, needs_human=high or severity == "medium")

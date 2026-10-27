@@ -82,3 +82,15 @@ def test_endpoint_offline():
     body = r.json()
     assert body["ticket"]["category"] == "wait_time" and body["ticket"]["store_id"] == 4
     assert TestClient(app).post("/extract/ticket", json={"text": ""}).status_code == 422
+
+
+
+def test_late_delivery_is_medium_severity_and_escalated():
+    t = rule_extract_ticket(
+        "Customer order: 2 classic burgers, 1 cola, no pickles. "
+        "Customer reports the order arrived late."
+    )
+    assert t.category == "wait_time"
+    assert t.severity == "medium"
+    assert t.needs_human is True
+    assert "classic burger" in t.items and "cola" in t.items
