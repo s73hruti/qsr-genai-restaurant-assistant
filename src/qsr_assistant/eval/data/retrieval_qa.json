@@ -1,0 +1,1450 @@
+[
+ {
+  "id": "menu-classic-burger#0",
+  "q": "What do I pay for a plain beef sandwich?",
+  "audience": "customer",
+  "doc_id": "menu-classic-burger",
+  "type": "menu",
+  "expect": "costs $4.50"
+ },
+ {
+  "id": "menu-classic-burger#1",
+  "q": "How many calories are in the Classic Burger?",
+  "audience": "customer",
+  "doc_id": "menu-classic-burger",
+  "type": "menu",
+  "expect": "520 kcal"
+ },
+ {
+  "id": "menu-classic-burger#2",
+  "q": "Which allergens should I know about in the plain beef sandwich?",
+  "audience": "customer",
+  "doc_id": "menu-classic-burger",
+  "type": "menu",
+  "expect": "Allergens: gluten"
+ },
+ {
+  "id": "menu-double-cheese-burger#0",
+  "q": "How much is the Double Cheese Burger?",
+  "audience": "customer",
+  "doc_id": "menu-double-cheese-burger",
+  "type": "menu",
+  "expect": "costs $6.20"
+ },
+ {
+  "id": "menu-double-cheese-burger#1",
+  "q": "What is the energy content of a two-patty cheese sandwich?",
+  "audience": "customer",
+  "doc_id": "menu-double-cheese-burger",
+  "type": "menu",
+  "expect": "740 kcal"
+ },
+ {
+  "id": "menu-double-cheese-burger#2",
+  "q": "Which allergens should I know about in the two-patty cheese sandwich?",
+  "audience": "customer",
+  "doc_id": "menu-double-cheese-burger",
+  "type": "menu",
+  "expect": "Allergens: gluten, milk"
+ },
+ {
+  "id": "menu-spicy-chicken-burger#0",
+  "q": "What do I pay for a hot crispy chicken sandwich?",
+  "audience": "customer",
+  "doc_id": "menu-spicy-chicken-burger",
+  "type": "menu",
+  "expect": "costs $5.40"
+ },
+ {
+  "id": "menu-spicy-chicken-burger#1",
+  "q": "How many calories are in the Spicy Chicken Burger?",
+  "audience": "customer",
+  "doc_id": "menu-spicy-chicken-burger",
+  "type": "menu",
+  "expect": "560 kcal"
+ },
+ {
+  "id": "menu-spicy-chicken-burger#2",
+  "q": "Which allergens should I know about in the hot crispy chicken sandwich?",
+  "audience": "customer",
+  "doc_id": "menu-spicy-chicken-burger",
+  "type": "menu",
+  "expect": "Allergens: gluten"
+ },
+ {
+  "id": "menu-crispy-fish-burger#0",
+  "q": "How much is the Crispy Fish Burger?",
+  "audience": "customer",
+  "doc_id": "menu-crispy-fish-burger",
+  "type": "menu",
+  "expect": "costs $5.60"
+ },
+ {
+  "id": "menu-crispy-fish-burger#1",
+  "q": "What is the energy content of a breaded seafood sandwich?",
+  "audience": "customer",
+  "doc_id": "menu-crispy-fish-burger",
+  "type": "menu",
+  "expect": "480 kcal"
+ },
+ {
+  "id": "menu-crispy-fish-burger#2",
+  "q": "Which allergens should I know about in the breaded seafood sandwich?",
+  "audience": "customer",
+  "doc_id": "menu-crispy-fish-burger",
+  "type": "menu",
+  "expect": "Allergens: fish, gluten, milk"
+ },
+ {
+  "id": "menu-veggie-delight-burger#0",
+  "q": "What do I pay for a meat-free patty sandwich?",
+  "audience": "customer",
+  "doc_id": "menu-veggie-delight-burger",
+  "type": "menu",
+  "expect": "costs $4.80"
+ },
+ {
+  "id": "menu-veggie-delight-burger#1",
+  "q": "How many calories are in the Veggie Delight Burger?",
+  "audience": "customer",
+  "doc_id": "menu-veggie-delight-burger",
+  "type": "menu",
+  "expect": "450 kcal"
+ },
+ {
+  "id": "menu-veggie-delight-burger#2",
+  "q": "Which allergens should I know about in the meat-free patty sandwich?",
+  "audience": "customer",
+  "doc_id": "menu-veggie-delight-burger",
+  "type": "menu",
+  "expect": "Allergens: gluten"
+ },
+ {
+  "id": "menu-chicken-nuggets-6pc#0",
+  "q": "How much is the Chicken Nuggets 6pc?",
+  "audience": "customer",
+  "doc_id": "menu-chicken-nuggets-6pc",
+  "type": "menu",
+  "expect": "costs $4.20"
+ },
+ {
+  "id": "menu-chicken-nuggets-6pc#1",
+  "q": "What is the energy content of a half a dozen chicken bites?",
+  "audience": "customer",
+  "doc_id": "menu-chicken-nuggets-6pc",
+  "type": "menu",
+  "expect": "270 kcal"
+ },
+ {
+  "id": "menu-chicken-nuggets-6pc#2",
+  "q": "Which allergens should I know about in the half a dozen chicken bites?",
+  "audience": "customer",
+  "doc_id": "menu-chicken-nuggets-6pc",
+  "type": "menu",
+  "expect": "Allergens: gluten"
+ },
+ {
+  "id": "menu-large-fries#0",
+  "q": "What do I pay for a big portion of chips?",
+  "audience": "customer",
+  "doc_id": "menu-large-fries",
+  "type": "menu",
+  "expect": "costs $3.40"
+ },
+ {
+  "id": "menu-large-fries#1",
+  "q": "How many calories are in the Large Fries?",
+  "audience": "customer",
+  "doc_id": "menu-large-fries",
+  "type": "menu",
+  "expect": "380 kcal"
+ },
+ {
+  "id": "menu-medium-fries#0",
+  "q": "How much is the Medium Fries?",
+  "audience": "customer",
+  "doc_id": "menu-medium-fries",
+  "type": "menu",
+  "expect": "costs $2.80"
+ },
+ {
+  "id": "menu-medium-fries#1",
+  "q": "What is the energy content of a regular portion of chips?",
+  "audience": "customer",
+  "doc_id": "menu-medium-fries",
+  "type": "menu",
+  "expect": "290 kcal"
+ },
+ {
+  "id": "menu-hash-brown#0",
+  "q": "What do I pay for a breakfast potato patty?",
+  "audience": "customer",
+  "doc_id": "menu-hash-brown",
+  "type": "menu",
+  "expect": "costs $1.50"
+ },
+ {
+  "id": "menu-hash-brown#1",
+  "q": "How many calories are in the Hash Brown?",
+  "audience": "customer",
+  "doc_id": "menu-hash-brown",
+  "type": "menu",
+  "expect": "140 kcal"
+ },
+ {
+  "id": "menu-hash-brown#2",
+  "q": "Which allergens should I know about in the breakfast potato patty?",
+  "audience": "customer",
+  "doc_id": "menu-hash-brown",
+  "type": "menu",
+  "expect": "Allergens: gluten"
+ },
+ {
+  "id": "menu-cola#0",
+  "q": "How much is the Cola?",
+  "audience": "customer",
+  "doc_id": "menu-cola",
+  "type": "menu",
+  "expect": "costs $2.20"
+ },
+ {
+  "id": "menu-cola#1",
+  "q": "What is the energy content of a fizzy soda?",
+  "audience": "customer",
+  "doc_id": "menu-cola",
+  "type": "menu",
+  "expect": "150 kcal"
+ },
+ {
+  "id": "menu-iced-coffee#0",
+  "q": "What do I pay for a chilled coffee with milk?",
+  "audience": "customer",
+  "doc_id": "menu-iced-coffee",
+  "type": "menu",
+  "expect": "costs $3.20"
+ },
+ {
+  "id": "menu-iced-coffee#1",
+  "q": "How many calories are in the Iced Coffee?",
+  "audience": "customer",
+  "doc_id": "menu-iced-coffee",
+  "type": "menu",
+  "expect": "120 kcal"
+ },
+ {
+  "id": "menu-iced-coffee#2",
+  "q": "Which allergens should I know about in the chilled coffee with milk?",
+  "audience": "customer",
+  "doc_id": "menu-iced-coffee",
+  "type": "menu",
+  "expect": "Allergens: milk"
+ },
+ {
+  "id": "menu-hot-coffee#0",
+  "q": "How much is the Hot Coffee?",
+  "audience": "customer",
+  "doc_id": "menu-hot-coffee",
+  "type": "menu",
+  "expect": "costs $2.50"
+ },
+ {
+  "id": "menu-hot-coffee#1",
+  "q": "What is the energy content of a steaming morning coffee?",
+  "audience": "customer",
+  "doc_id": "menu-hot-coffee",
+  "type": "menu",
+  "expect": "60 kcal"
+ },
+ {
+  "id": "menu-hot-coffee#2",
+  "q": "Which allergens should I know about in the steaming morning coffee?",
+  "audience": "customer",
+  "doc_id": "menu-hot-coffee",
+  "type": "menu",
+  "expect": "Allergens: milk"
+ },
+ {
+  "id": "menu-soft-serve-cone#0",
+  "q": "What do I pay for a plain ice cream in a cone?",
+  "audience": "customer",
+  "doc_id": "menu-soft-serve-cone",
+  "type": "menu",
+  "expect": "costs $1.80"
+ },
+ {
+  "id": "menu-soft-serve-cone#1",
+  "q": "How many calories are in the Soft Serve Cone?",
+  "audience": "customer",
+  "doc_id": "menu-soft-serve-cone",
+  "type": "menu",
+  "expect": "190 kcal"
+ },
+ {
+  "id": "menu-soft-serve-cone#2",
+  "q": "Which allergens should I know about in the plain ice cream in a cone?",
+  "audience": "customer",
+  "doc_id": "menu-soft-serve-cone",
+  "type": "menu",
+  "expect": "Allergens: milk"
+ },
+ {
+  "id": "menu-chocolate-sundae#0",
+  "q": "How much is the Chocolate Sundae?",
+  "audience": "customer",
+  "doc_id": "menu-chocolate-sundae",
+  "type": "menu",
+  "expect": "costs $3.40"
+ },
+ {
+  "id": "menu-chocolate-sundae#1",
+  "q": "What is the energy content of a ice cream with chocolate topping?",
+  "audience": "customer",
+  "doc_id": "menu-chocolate-sundae",
+  "type": "menu",
+  "expect": "340 kcal"
+ },
+ {
+  "id": "menu-chocolate-sundae#2",
+  "q": "Which allergens should I know about in the ice cream with chocolate topping?",
+  "audience": "customer",
+  "doc_id": "menu-chocolate-sundae",
+  "type": "menu",
+  "expect": "Allergens: milk"
+ },
+ {
+  "id": "menu-breakfast-muffin#0",
+  "q": "What do I pay for a egg and cheese breakfast sandwich?",
+  "audience": "customer",
+  "doc_id": "menu-breakfast-muffin",
+  "type": "menu",
+  "expect": "costs $3.80"
+ },
+ {
+  "id": "menu-breakfast-muffin#1",
+  "q": "How many calories are in the Breakfast Muffin?",
+  "audience": "customer",
+  "doc_id": "menu-breakfast-muffin",
+  "type": "menu",
+  "expect": "410 kcal"
+ },
+ {
+  "id": "menu-breakfast-muffin#2",
+  "q": "Which allergens should I know about in the egg and cheese breakfast sandwich?",
+  "audience": "customer",
+  "doc_id": "menu-breakfast-muffin",
+  "type": "menu",
+  "expect": "Allergens: egg, gluten, milk"
+ },
+ {
+  "id": "promo-fries20#0",
+  "q": "Is there a discount on chips if I buy a sandwich on the last weekday?",
+  "audience": "customer",
+  "doc_id": "promo-fries20",
+  "type": "promo",
+  "expect": "20% off a Large Fries"
+ },
+ {
+  "id": "promo-combo5#0",
+  "q": "How much can I save on the two-patty cheese meal deal?",
+  "audience": "customer",
+  "doc_id": "promo-combo5",
+  "type": "promo",
+  "expect": "Save $1.50"
+ },
+ {
+  "id": "promo-cone1#0",
+  "q": "Can I get ice cream for a buck?",
+  "audience": "customer",
+  "doc_id": "promo-cone1",
+  "type": "promo",
+  "expect": "$1 with any order over $8"
+ },
+ {
+  "id": "promo-morning#0",
+  "q": "Is coffee cheaper early in the day?",
+  "audience": "customer",
+  "doc_id": "promo-morning",
+  "type": "promo",
+  "expect": "half price between 6am and 10am"
+ },
+ {
+  "id": "promo-gold2x#0",
+  "q": "Do top-tier members earn extra points on Saturdays?",
+  "audience": "customer",
+  "doc_id": "promo-gold2x",
+  "type": "promo",
+  "expect": "2x points on weekend"
+ },
+ {
+  "id": "promo-family#0",
+  "q": "What is in the four sandwich bundle and what does it cost?",
+  "audience": "customer",
+  "doc_id": "promo-family",
+  "type": "promo",
+  "expect": "$22"
+ },
+ {
+  "id": "store-riverside#0",
+  "q": "Can I order from my car at the Riverside branch?",
+  "audience": "customer",
+  "doc_id": "store-riverside",
+  "type": "store",
+  "expect": "Drive-thru: yes"
+ },
+ {
+  "id": "store-riverside#1",
+  "q": "What time does the Riverside restaurant shut?",
+  "audience": "customer",
+  "doc_id": "store-riverside",
+  "type": "store",
+  "expect": "Open daily from 6am to 11pm"
+ },
+ {
+  "id": "store-riverside#2",
+  "q": "Is there somewhere for kids to play at Riverside?",
+  "audience": "customer",
+  "doc_id": "store-riverside",
+  "type": "store",
+  "expect": "Play area: yes"
+ },
+ {
+  "id": "store-harbor-point#0",
+  "q": "Can I order from my car at the Harbor Point branch?",
+  "audience": "customer",
+  "doc_id": "store-harbor-point",
+  "type": "store",
+  "expect": "Drive-thru: yes"
+ },
+ {
+  "id": "store-harbor-point#1",
+  "q": "What time does the Harbor Point restaurant shut?",
+  "audience": "customer",
+  "doc_id": "store-harbor-point",
+  "type": "store",
+  "expect": "Open daily from 7am to 10pm"
+ },
+ {
+  "id": "store-maple-grove#0",
+  "q": "Can I order from my car at the Maple Grove branch?",
+  "audience": "customer",
+  "doc_id": "store-maple-grove",
+  "type": "store",
+  "expect": "Drive-thru: no"
+ },
+ {
+  "id": "store-maple-grove#1",
+  "q": "What time does the Maple Grove restaurant shut?",
+  "audience": "customer",
+  "doc_id": "store-maple-grove",
+  "type": "store",
+  "expect": "Open daily from 6am to 11pm"
+ },
+ {
+  "id": "store-old-town#0",
+  "q": "Can I order from my car at the Old Town branch?",
+  "audience": "customer",
+  "doc_id": "store-old-town",
+  "type": "store",
+  "expect": "Drive-thru: yes"
+ },
+ {
+  "id": "store-old-town#1",
+  "q": "What time does the Old Town restaurant shut?",
+  "audience": "customer",
+  "doc_id": "store-old-town",
+  "type": "store",
+  "expect": "Open 24 hours, every day"
+ },
+ {
+  "id": "store-lakeview#0",
+  "q": "Can I order from my car at the Lakeview branch?",
+  "audience": "customer",
+  "doc_id": "store-lakeview",
+  "type": "store",
+  "expect": "Drive-thru: yes"
+ },
+ {
+  "id": "store-lakeview#1",
+  "q": "What time does the Lakeview restaurant shut?",
+  "audience": "customer",
+  "doc_id": "store-lakeview",
+  "type": "store",
+  "expect": "Open daily from 6am to 11pm"
+ },
+ {
+  "id": "store-lakeview#2",
+  "q": "Is there somewhere for kids to play at Lakeview?",
+  "audience": "customer",
+  "doc_id": "store-lakeview",
+  "type": "store",
+  "expect": "Play area: yes"
+ },
+ {
+  "id": "store-hillcrest#0",
+  "q": "Can I order from my car at the Hillcrest branch?",
+  "audience": "customer",
+  "doc_id": "store-hillcrest",
+  "type": "store",
+  "expect": "Drive-thru: no"
+ },
+ {
+  "id": "store-hillcrest#1",
+  "q": "What time does the Hillcrest restaurant shut?",
+  "audience": "customer",
+  "doc_id": "store-hillcrest",
+  "type": "store",
+  "expect": "Open daily from 7am to 10pm"
+ },
+ {
+  "id": "store-central-plaza#0",
+  "q": "Can I order from my car at the Central Plaza branch?",
+  "audience": "customer",
+  "doc_id": "store-central-plaza",
+  "type": "store",
+  "expect": "Drive-thru: yes"
+ },
+ {
+  "id": "store-central-plaza#1",
+  "q": "What time does the Central Plaza restaurant shut?",
+  "audience": "customer",
+  "doc_id": "store-central-plaza",
+  "type": "store",
+  "expect": "Open daily from 6am to 11pm"
+ },
+ {
+  "id": "store-airport-road#0",
+  "q": "Can I order from my car at the Airport Road branch?",
+  "audience": "customer",
+  "doc_id": "store-airport-road",
+  "type": "store",
+  "expect": "Drive-thru: yes"
+ },
+ {
+  "id": "store-airport-road#1",
+  "q": "What time does the Airport Road restaurant shut?",
+  "audience": "customer",
+  "doc_id": "store-airport-road",
+  "type": "store",
+  "expect": "Open daily from 7am to 10pm"
+ },
+ {
+  "id": "store-university-avenue#0",
+  "q": "Can I order from my car at the University Avenue branch?",
+  "audience": "customer",
+  "doc_id": "store-university-avenue",
+  "type": "store",
+  "expect": "Drive-thru: no"
+ },
+ {
+  "id": "store-university-avenue#1",
+  "q": "What time does the University Avenue restaurant shut?",
+  "audience": "customer",
+  "doc_id": "store-university-avenue",
+  "type": "store",
+  "expect": "Open 24 hours, every day"
+ },
+ {
+  "id": "store-university-avenue#2",
+  "q": "Is there somewhere for kids to play at University Avenue?",
+  "audience": "customer",
+  "doc_id": "store-university-avenue",
+  "type": "store",
+  "expect": "Play area: yes"
+ },
+ {
+  "id": "store-greenfield#0",
+  "q": "Can I order from my car at the Greenfield branch?",
+  "audience": "customer",
+  "doc_id": "store-greenfield",
+  "type": "store",
+  "expect": "Drive-thru: yes"
+ },
+ {
+  "id": "store-greenfield#1",
+  "q": "What time does the Greenfield restaurant shut?",
+  "audience": "customer",
+  "doc_id": "store-greenfield",
+  "type": "store",
+  "expect": "Open daily from 7am to 10pm"
+ },
+ {
+  "id": "store-sunset-mall#0",
+  "q": "Can I order from my car at the Sunset Mall branch?",
+  "audience": "customer",
+  "doc_id": "store-sunset-mall",
+  "type": "store",
+  "expect": "Drive-thru: yes"
+ },
+ {
+  "id": "store-northgate#0",
+  "q": "Can I order from my car at the Northgate branch?",
+  "audience": "customer",
+  "doc_id": "store-northgate",
+  "type": "store",
+  "expect": "Drive-thru: no"
+ },
+ {
+  "id": "store-eastwood#0",
+  "q": "Can I order from my car at the Eastwood branch?",
+  "audience": "customer",
+  "doc_id": "store-eastwood",
+  "type": "store",
+  "expect": "Drive-thru: yes"
+ },
+ {
+  "id": "store-eastwood#1",
+  "q": "Is there somewhere for kids to play at Eastwood?",
+  "audience": "customer",
+  "doc_id": "store-eastwood",
+  "type": "store",
+  "expect": "Play area: yes"
+ },
+ {
+  "id": "store-westbrook#0",
+  "q": "Can I order from my car at the Westbrook branch?",
+  "audience": "customer",
+  "doc_id": "store-westbrook",
+  "type": "store",
+  "expect": "Drive-thru: yes"
+ },
+ {
+  "id": "store-southpark#0",
+  "q": "Can I order from my car at the Southpark branch?",
+  "audience": "customer",
+  "doc_id": "store-southpark",
+  "type": "store",
+  "expect": "Drive-thru: no"
+ },
+ {
+  "id": "store-cedar-heights#0",
+  "q": "Can I order from my car at the Cedar Heights branch?",
+  "audience": "customer",
+  "doc_id": "store-cedar-heights",
+  "type": "store",
+  "expect": "Drive-thru: yes"
+ },
+ {
+  "id": "store-bayview#0",
+  "q": "Can I order from my car at the Bayview branch?",
+  "audience": "customer",
+  "doc_id": "store-bayview",
+  "type": "store",
+  "expect": "Drive-thru: yes"
+ },
+ {
+  "id": "store-bayview#1",
+  "q": "Is there somewhere for kids to play at Bayview?",
+  "audience": "customer",
+  "doc_id": "store-bayview",
+  "type": "store",
+  "expect": "Play area: yes"
+ },
+ {
+  "id": "store-oakridge#0",
+  "q": "Can I order from my car at the Oakridge branch?",
+  "audience": "customer",
+  "doc_id": "store-oakridge",
+  "type": "store",
+  "expect": "Drive-thru: no"
+ },
+ {
+  "id": "store-ironbridge#0",
+  "q": "Can I order from my car at the Ironbridge branch?",
+  "audience": "customer",
+  "doc_id": "store-ironbridge",
+  "type": "store",
+  "expect": "Drive-thru: yes"
+ },
+ {
+  "id": "store-stonebridge#0",
+  "q": "Can I order from my car at the Stonebridge branch?",
+  "audience": "customer",
+  "doc_id": "store-stonebridge",
+  "type": "store",
+  "expect": "Drive-thru: yes"
+ },
+ {
+  "id": "guide-vegetarian#0",
+  "q": "Which dishes are suitable for someone who does not eat meat?",
+  "audience": "customer",
+  "doc_id": "guide-vegetarian",
+  "type": "guide",
+  "expect": "Veggie Delight Burger"
+ },
+ {
+  "id": "guide-gluten#0",
+  "q": "What can I order if I cannot eat wheat?",
+  "audience": "customer",
+  "doc_id": "guide-gluten",
+  "type": "guide",
+  "expect": "Cola"
+ },
+ {
+  "id": "guide-dairy-free#0",
+  "q": "Which products are free of milk?",
+  "audience": "customer",
+  "doc_id": "guide-dairy-free",
+  "type": "guide",
+  "expect": "Large Fries"
+ },
+ {
+  "id": "guide-kids#0",
+  "q": "What items are tagged as suitable for little ones?",
+  "audience": "customer",
+  "doc_id": "guide-kids",
+  "type": "guide",
+  "expect": "Soft Serve Cone"
+ },
+ {
+  "id": "guide-breakfast#0",
+  "q": "What can I get to eat first thing in the morning?",
+  "audience": "customer",
+  "doc_id": "guide-breakfast",
+  "type": "guide",
+  "expect": "Breakfast Muffin"
+ },
+ {
+  "id": "guide-cold-items#0",
+  "q": "Which chilled things are on offer for a hot afternoon?",
+  "audience": "customer",
+  "doc_id": "guide-cold-items",
+  "type": "guide",
+  "expect": "Iced Coffee"
+ },
+ {
+  "id": "faq-refunds#0",
+  "q": "How many days until my money comes back after a refund?",
+  "audience": "customer",
+  "doc_id": "faq-refunds",
+  "type": "faq",
+  "expect": "3 to 5 business days"
+ },
+ {
+  "id": "faq-refunds#1",
+  "q": "My bag was missing a drink, what do I do?",
+  "audience": "customer",
+  "doc_id": "faq-refunds",
+  "type": "faq",
+  "expect": "Report a problem"
+ },
+ {
+  "id": "faq-loyalty-tiers#0",
+  "q": "How many points do I need to become a Gold member?",
+  "audience": "customer",
+  "doc_id": "faq-loyalty-tiers",
+  "type": "faq",
+  "expect": "500 points"
+ },
+ {
+  "id": "faq-loyalty-tiers#1",
+  "q": "What extra perks come with Platinum status?",
+  "audience": "customer",
+  "doc_id": "faq-loyalty-tiers",
+  "type": "faq",
+  "expect": "double points on weekends"
+ },
+ {
+  "id": "faq-points-redemption#0",
+  "q": "After how long do my unused rewards points disappear?",
+  "audience": "customer",
+  "doc_id": "faq-points-redemption",
+  "type": "faq",
+  "expect": "12 months after"
+ },
+ {
+  "id": "faq-points-redemption#1",
+  "q": "What is the cash value of one hundred points?",
+  "audience": "customer",
+  "doc_id": "faq-points-redemption",
+  "type": "faq",
+  "expect": "1 dollar reward"
+ },
+ {
+  "id": "faq-allergens-general#0",
+  "q": "Is the food cooked separately for vegetarians?",
+  "audience": "customer",
+  "doc_id": "faq-allergens-general",
+  "type": "faq",
+  "expect": "shared equipment"
+ },
+ {
+  "id": "faq-allergens-general#1",
+  "q": "Can you promise a meal with zero allergen risk?",
+  "audience": "customer",
+  "doc_id": "faq-allergens-general",
+  "type": "faq",
+  "expect": "cannot guarantee"
+ },
+ {
+  "id": "faq-order-tracking#0",
+  "q": "Roughly how quickly will my curbside order be ready?",
+  "audience": "customer",
+  "doc_id": "faq-order-tracking",
+  "type": "faq",
+  "expect": "4 to 8 minutes"
+ },
+ {
+  "id": "faq-delivery#0",
+  "q": "What basket value qualifies for no delivery charge?",
+  "audience": "customer",
+  "doc_id": "faq-delivery",
+  "type": "faq",
+  "expect": "above 30 dollars"
+ },
+ {
+  "id": "faq-delivery#1",
+  "q": "Until what time can I get food brought to my home?",
+  "audience": "customer",
+  "doc_id": "faq-delivery",
+  "type": "faq",
+  "expect": "10pm"
+ },
+ {
+  "id": "faq-payment#0",
+  "q": "Can I pay with cash when ordering through the app?",
+  "audience": "customer",
+  "doc_id": "faq-payment",
+  "type": "faq",
+  "expect": "in store only"
+ },
+ {
+  "id": "faq-gift-cards#0",
+  "q": "For how long can a present card be used?",
+  "audience": "customer",
+  "doc_id": "faq-gift-cards",
+  "type": "faq",
+  "expect": "24 months"
+ },
+ {
+  "id": "faq-receipts#0",
+  "q": "How soon will I get my tax invoice by email?",
+  "audience": "customer",
+  "doc_id": "faq-receipts",
+  "type": "faq",
+  "expect": "within 24 hours"
+ },
+ {
+  "id": "faq-lost-items#0",
+  "q": "I forgot my umbrella at a restaurant, how long will they keep it?",
+  "audience": "customer",
+  "doc_id": "faq-lost-items",
+  "type": "faq",
+  "expect": "30 days"
+ },
+ {
+  "id": "faq-feedback#0",
+  "q": "What reward do I get for completing the receipt survey?",
+  "audience": "customer",
+  "doc_id": "faq-feedback",
+  "type": "faq",
+  "expect": "free Soft Serve Cone"
+ },
+ {
+  "id": "faq-catering#0",
+  "q": "How much advance warning for a party order of twenty burgers?",
+  "audience": "customer",
+  "doc_id": "faq-catering",
+  "type": "faq",
+  "expect": "24 hours notice"
+ },
+ {
+  "id": "faq-kids#0",
+  "q": "Which items do children usually pick?",
+  "audience": "customer",
+  "doc_id": "faq-kids",
+  "type": "faq",
+  "expect": "Classic Burger, Chicken Nuggets 6pc"
+ },
+ {
+  "id": "faq-app-login#0",
+  "q": "The link to choose a new password stopped working, how long does it last?",
+  "audience": "customer",
+  "doc_id": "faq-app-login",
+  "type": "faq",
+  "expect": "30 minutes"
+ },
+ {
+  "id": "faq-app-login#1",
+  "q": "How long am I locked out after typing the wrong password repeatedly?",
+  "audience": "customer",
+  "doc_id": "faq-app-login",
+  "type": "faq",
+  "expect": "locked for 15 minutes"
+ },
+ {
+  "id": "faq-app-problems#0",
+  "q": "The application keeps freezing, what should I try first?",
+  "audience": "customer",
+  "doc_id": "faq-app-problems",
+  "type": "faq",
+  "expect": "Update to the latest app version"
+ },
+ {
+  "id": "faq-delete-account#0",
+  "q": "How long does it take to wipe my personal information after I ask?",
+  "audience": "customer",
+  "doc_id": "faq-delete-account",
+  "type": "faq",
+  "expect": "within 30 days"
+ },
+ {
+  "id": "faq-order-changes#0",
+  "q": "Until when can I still modify what I just ordered?",
+  "audience": "customer",
+  "doc_id": "faq-order-changes",
+  "type": "faq",
+  "expect": "within 2 minutes"
+ },
+ {
+  "id": "faq-curbside#0",
+  "q": "After I tell the app I've arrived outside, how long till someone brings the food?",
+  "audience": "customer",
+  "doc_id": "faq-curbside",
+  "type": "faq",
+  "expect": "within 3 minutes"
+ },
+ {
+  "id": "faq-accessibility#0",
+  "q": "Do you provide menus with bigger lettering?",
+  "audience": "customer",
+  "doc_id": "faq-accessibility",
+  "type": "faq",
+  "expect": "Large print menus"
+ },
+ {
+  "id": "faq-opening-hours#0",
+  "q": "How many restaurants never close?",
+  "audience": "customer",
+  "doc_id": "faq-opening-hours",
+  "type": "faq",
+  "expect": "Three stores are open 24 hours"
+ },
+ {
+  "id": "faq-offer-stacking#0",
+  "q": "Can I use two discounts on the same purchase?",
+  "audience": "customer",
+  "doc_id": "faq-offer-stacking",
+  "type": "faq",
+  "expect": "one offer can be applied"
+ },
+ {
+  "id": "faq-birthday#0",
+  "q": "What do members get during the week of their birthday?",
+  "audience": "customer",
+  "doc_id": "faq-birthday",
+  "type": "faq",
+  "expect": "free Soft Serve Cone"
+ },
+ {
+  "id": "faq-student-discount#0",
+  "q": "Do pupils with a school card get a price cut?",
+  "audience": "customer",
+  "doc_id": "faq-student-discount",
+  "type": "faq",
+  "expect": "10 percent off"
+ },
+ {
+  "id": "faq-nutrition#0",
+  "q": "Where can I see calorie counts for each product?",
+  "audience": "customer",
+  "doc_id": "faq-nutrition",
+  "type": "faq",
+  "expect": "menu item page"
+ },
+ {
+  "id": "faq-vegan#0",
+  "q": "Is the plant patty burger suitable for vegans?",
+  "audience": "customer",
+  "doc_id": "faq-vegan",
+  "type": "faq",
+  "expect": "vegetarian rather than vegan"
+ },
+ {
+  "id": "policy-privacy#0",
+  "q": "How long do you retain my purchase history after I stop ordering?",
+  "audience": "customer",
+  "doc_id": "policy-privacy",
+  "type": "policy",
+  "expect": "24 months"
+ },
+ {
+  "id": "policy-privacy#1",
+  "q": "Do you share my details with advertisers for money?",
+  "audience": "customer",
+  "doc_id": "policy-privacy",
+  "type": "policy",
+  "expect": "never sell personal data"
+ },
+ {
+  "id": "policy-offer-terms#0",
+  "q": "Can a coupon be swapped for money?",
+  "audience": "customer",
+  "doc_id": "policy-offer-terms",
+  "type": "policy",
+  "expect": "cannot be exchanged for cash"
+ },
+ {
+  "id": "policy-refund#0",
+  "q": "Within how long must I complain about a cold meal to get money back?",
+  "audience": "customer",
+  "doc_id": "policy-refund",
+  "type": "policy",
+  "expect": "within 24 hours"
+ },
+ {
+  "id": "policy-refund#1",
+  "q": "What do I receive if I paid with a gift card and my order is refunded?",
+  "audience": "customer",
+  "doc_id": "policy-refund",
+  "type": "policy",
+  "expect": "store credit"
+ },
+ {
+  "id": "policy-acceptable-use#0",
+  "q": "Am I allowed to use bots to place orders?",
+  "audience": "customer",
+  "doc_id": "policy-acceptable-use",
+  "type": "policy",
+  "expect": "automated tools"
+ },
+ {
+  "id": "policy-food-safety#0",
+  "q": "How often are the restaurants inspected by outsiders?",
+  "audience": "customer",
+  "doc_id": "policy-food-safety",
+  "type": "policy",
+  "expect": "twice a year"
+ },
+ {
+  "id": "sop-ingredient-ordering#0",
+  "q": "What is the deadline to submit tomorrow's supplier order?",
+  "audience": "manager",
+  "doc_id": "sop-ingredient-ordering",
+  "type": "sop",
+  "expect": "14:00"
+ },
+ {
+  "id": "sop-ingredient-ordering#1",
+  "q": "On which weekdays does the frozen stock truck arrive?",
+  "audience": "manager",
+  "doc_id": "sop-ingredient-ordering",
+  "type": "sop",
+  "expect": "Tuesday and Friday"
+ },
+ {
+  "id": "sop-drive-thru-targets#0",
+  "q": "When should an extra person go out to the lane to take orders?",
+  "audience": "manager",
+  "doc_id": "sop-drive-thru-targets",
+  "type": "sop",
+  "expect": "exceeds 10 vehicles"
+ },
+ {
+  "id": "sop-drive-thru-targets#1",
+  "q": "What average service time should the drive lane achieve?",
+  "audience": "manager",
+  "doc_id": "sop-drive-thru-targets",
+  "type": "sop",
+  "expect": "180 seconds"
+ },
+ {
+  "id": "sop-peak-staffing#0",
+  "q": "How many team members must be working during rush hours at minimum?",
+  "audience": "manager",
+  "doc_id": "sop-peak-staffing",
+  "type": "sop",
+  "expect": "7 on shift"
+ },
+ {
+  "id": "sop-peak-staffing#1",
+  "q": "By how much must predicted demand exceed normal before I change the rota?",
+  "audience": "manager",
+  "doc_id": "sop-peak-staffing",
+  "type": "sop",
+  "expect": "15 percent"
+ },
+ {
+  "id": "sop-food-holding#0",
+  "q": "How long can chicken pieces sit in the warming cabinet?",
+  "audience": "manager",
+  "doc_id": "sop-food-holding",
+  "type": "sop",
+  "expect": "15 minutes"
+ },
+ {
+  "id": "sop-food-holding#1",
+  "q": "What is the maximum time cooked chips can wait in the bin?",
+  "audience": "manager",
+  "doc_id": "sop-food-holding",
+  "type": "sop",
+  "expect": "maximum of 7 minutes"
+ },
+ {
+  "id": "sop-food-holding#2",
+  "q": "How often must refrigerator temperatures be written down?",
+  "audience": "manager",
+  "doc_id": "sop-food-holding",
+  "type": "sop",
+  "expect": "every 4 hours"
+ },
+ {
+  "id": "sop-waste-logging#0",
+  "q": "What percentage of food cost is the ceiling for throwaway stock?",
+  "audience": "manager",
+  "doc_id": "sop-waste-logging",
+  "type": "sop",
+  "expect": "below 3 percent"
+ },
+ {
+  "id": "sop-waste-logging#1",
+  "q": "When do I tell head office the demand predictions are too high?",
+  "audience": "manager",
+  "doc_id": "sop-waste-logging",
+  "type": "sop",
+  "expect": "2 weeks in a row"
+ },
+ {
+  "id": "sop-refund-approvals#0",
+  "q": "Who must sign off a 35 dollar refund?",
+  "audience": "manager",
+  "doc_id": "sop-refund-approvals",
+  "type": "sop",
+  "expect": "store manager"
+ },
+ {
+  "id": "sop-refund-approvals#1",
+  "q": "What is the most a crew member may give back without asking?",
+  "audience": "manager",
+  "doc_id": "sop-refund-approvals",
+  "type": "sop",
+  "expect": "up to 5 dollars"
+ },
+ {
+  "id": "sop-promotions-rules#0",
+  "q": "How many marketing notifications may a customer receive weekly?",
+  "audience": "manager",
+  "doc_id": "sop-promotions-rules",
+  "type": "sop",
+  "expect": "2 promotional messages"
+ },
+ {
+  "id": "sop-opening-checklist#0",
+  "q": "How early must the person opening the restaurant turn up?",
+  "audience": "manager",
+  "doc_id": "sop-opening-checklist",
+  "type": "sop",
+  "expect": "45 minutes before opening"
+ },
+ {
+  "id": "sop-opening-checklist#1",
+  "q": "How much starting cash goes in every register?",
+  "audience": "manager",
+  "doc_id": "sop-opening-checklist",
+  "type": "sop",
+  "expect": "150 dollar float"
+ },
+ {
+  "id": "sop-closing-checklist#0",
+  "q": "How long after shutting do registers need to be cashed up?",
+  "audience": "manager",
+  "doc_id": "sop-closing-checklist",
+  "type": "sop",
+  "expect": "within 30 minutes"
+ },
+ {
+  "id": "sop-cash-handling#0",
+  "q": "At what amount in a register must money be moved to the safe?",
+  "audience": "manager",
+  "doc_id": "sop-cash-handling",
+  "type": "sop",
+  "expect": "more than 300 dollars"
+ },
+ {
+  "id": "sop-cash-handling#1",
+  "q": "What cash discrepancy has to be escalated?",
+  "audience": "manager",
+  "doc_id": "sop-cash-handling",
+  "type": "sop",
+  "expect": "above 5 dollars"
+ },
+ {
+  "id": "sop-allergen-incident#0",
+  "q": "How quickly must an allergic reaction event be reported upward?",
+  "audience": "manager",
+  "doc_id": "sop-allergen-incident",
+  "type": "sop",
+  "expect": "within 1 hour"
+ },
+ {
+  "id": "sop-allergen-incident#1",
+  "q": "What do we do if a guest has trouble breathing after eating?",
+  "audience": "manager",
+  "doc_id": "sop-allergen-incident",
+  "type": "sop",
+  "expect": "emergency services"
+ },
+ {
+  "id": "sop-equipment-faults#0",
+  "q": "How fast must a broken freezer be reported to maintenance?",
+  "audience": "manager",
+  "doc_id": "sop-equipment-faults",
+  "type": "sop",
+  "expect": "within 15 minutes"
+ },
+ {
+  "id": "sop-equipment-faults#1",
+  "q": "When do I raise a ticket for the milkshake dispenser?",
+  "audience": "manager",
+  "doc_id": "sop-equipment-faults",
+  "type": "sop",
+  "expect": "more than 2 hours"
+ },
+ {
+  "id": "sop-delivery-receiving#0",
+  "q": "At what temperature do we refuse frozen supplies?",
+  "audience": "manager",
+  "doc_id": "sop-delivery-receiving",
+  "type": "sop",
+  "expect": "above minus 12"
+ },
+ {
+  "id": "sop-delivery-receiving#1",
+  "q": "How long do we have to flag shortages to the vendor?",
+  "audience": "manager",
+  "doc_id": "sop-delivery-receiving",
+  "type": "sop",
+  "expect": "within 24 hours"
+ },
+ {
+  "id": "sop-cleaning-schedule#0",
+  "q": "How frequently should the cooking oil be replaced completely?",
+  "audience": "manager",
+  "doc_id": "sop-cleaning-schedule",
+  "type": "sop",
+  "expect": "every 3 days"
+ },
+ {
+  "id": "sop-cleaning-schedule#1",
+  "q": "How often are the toilets inspected?",
+  "audience": "manager",
+  "doc_id": "sop-cleaning-schedule",
+  "type": "sop",
+  "expect": "every 30 minutes"
+ },
+ {
+  "id": "sop-hygiene-uniform#0",
+  "q": "After stomach illness, how long must a worker stay home?",
+  "audience": "manager",
+  "doc_id": "sop-hygiene-uniform",
+  "type": "sop",
+  "expect": "48 hours after symptoms"
+ },
+ {
+  "id": "sop-breaks#0",
+  "q": "How long is the meal break on a 7 hour shift?",
+  "audience": "manager",
+  "doc_id": "sop-breaks",
+  "type": "sop",
+  "expect": "30 minute unpaid break"
+ },
+ {
+  "id": "sop-onboarding#0",
+  "q": "Within how many days must newcomers earn the hygiene certificate?",
+  "audience": "manager",
+  "doc_id": "sop-onboarding",
+  "type": "sop",
+  "expect": "within 14 days"
+ },
+ {
+  "id": "sop-incident-reporting#0",
+  "q": "Which form is used to record a workplace injury?",
+  "audience": "manager",
+  "doc_id": "sop-incident-reporting",
+  "type": "sop",
+  "expect": "IR-12"
+ },
+ {
+  "id": "sop-incident-reporting#1",
+  "q": "How long must accident paperwork be retained?",
+  "audience": "manager",
+  "doc_id": "sop-incident-reporting",
+  "type": "sop",
+  "expect": "3 years"
+ },
+ {
+  "id": "sop-shift-handover#0",
+  "q": "Which stock items must be counted in the end-of-shift notes?",
+  "audience": "manager",
+  "doc_id": "sop-shift-handover",
+  "type": "sop",
+  "expect": "beef, chicken and potato"
+ },
+ {
+  "id": "sop-inventory-count#0",
+  "q": "On which night is the complete stock-take performed?",
+  "audience": "manager",
+  "doc_id": "sop-inventory-count",
+  "type": "sop",
+  "expect": "Sunday night"
+ },
+ {
+  "id": "sop-inventory-count#1",
+  "q": "What stock difference triggers an investigation?",
+  "audience": "manager",
+  "doc_id": "sop-inventory-count",
+  "type": "sop",
+  "expect": "above 2 percent"
+ },
+ {
+  "id": "sop-supplier-issues#0",
+  "q": "What is the fee for an urgent top-up order?",
+  "audience": "manager",
+  "doc_id": "sop-supplier-issues",
+  "type": "sop",
+  "expect": "25 dollar surcharge"
+ },
+ {
+  "id": "sop-supplier-issues#1",
+  "q": "Until what time can an emergency order be placed?",
+  "audience": "manager",
+  "doc_id": "sop-supplier-issues",
+  "type": "sop",
+  "expect": "17:00"
+ },
+ {
+  "id": "sop-power-outage#0",
+  "q": "How long without electricity before the lane must be closed?",
+  "audience": "manager",
+  "doc_id": "sop-power-outage",
+  "type": "sop",
+  "expect": "more than 30 minutes"
+ },
+ {
+  "id": "sop-loyalty-fraud#0",
+  "q": "How many same-day reward redemptions look suspicious?",
+  "audience": "manager",
+  "doc_id": "sop-loyalty-fraud",
+  "type": "sop",
+  "expect": "more than 5 redemptions"
+ },
+ {
+  "id": "sop-pest-control#0",
+  "q": "How soon must the exterminator respond after a rodent is seen?",
+  "audience": "manager",
+  "doc_id": "sop-pest-control",
+  "type": "sop",
+  "expect": "within 24 hours"
+ },
+ {
+  "id": "sop-delivery-orders#0",
+  "q": "What compensation applies when a home delivery is over 10 minutes late?",
+  "audience": "manager",
+  "doc_id": "sop-delivery-orders",
+  "type": "sop",
+  "expect": "20 percent credit"
+ },
+ {
+  "id": "sop-app-outage#0",
+  "q": "What do we hand out to guests when the ordering application is down?",
+  "audience": "manager",
+  "doc_id": "sop-app-outage",
+  "type": "sop",
+  "expect": "paper vouchers"
+ },
+ {
+  "id": "sop-lone-working#0",
+  "q": "Can one employee lock up by themselves late at night?",
+  "audience": "manager",
+  "doc_id": "sop-lone-working",
+  "type": "sop",
+  "expect": "two staff must be present"
+ },
+ {
+  "id": "sop-complaints#0",
+  "q": "What does the acronym for handling unhappy guests stand for?",
+  "audience": "manager",
+  "doc_id": "sop-complaints",
+  "type": "sop",
+  "expect": "Listen, Apologise, Solve, Thank"
+ },
+ {
+  "id": "train-fryer#0",
+  "q": "What is the maximum weight of chips per fryer basket?",
+  "audience": "manager",
+  "doc_id": "train-fryer",
+  "type": "training",
+  "expect": "1.5 kg"
+ },
+ {
+  "id": "train-fryer#1",
+  "q": "After how many cooking cycles must the oil be filtered?",
+  "audience": "manager",
+  "doc_id": "train-fryer",
+  "type": "training",
+  "expect": "40 cooking cycles"
+ },
+ {
+  "id": "train-grill#0",
+  "q": "What core temperature must a cooked burger patty reach?",
+  "audience": "manager",
+  "doc_id": "train-grill",
+  "type": "training",
+  "expect": "71 degrees"
+ },
+ {
+  "id": "train-shake-machine#0",
+  "q": "How cold must the ice cream mix be kept?",
+  "audience": "manager",
+  "doc_id": "train-shake-machine",
+  "type": "training",
+  "expect": "below 4 degrees"
+ },
+ {
+  "id": "train-coffee-machine#0",
+  "q": "After how long should unsold brewed coffee be thrown away?",
+  "audience": "manager",
+  "doc_id": "train-coffee-machine",
+  "type": "training",
+  "expect": "after 30 minutes"
+ },
+ {
+  "id": "train-coffee-machine#1",
+  "q": "How regularly is limescale removed from the espresso unit?",
+  "audience": "manager",
+  "doc_id": "train-coffee-machine",
+  "type": "training",
+  "expect": "every 30 days"
+ },
+ {
+  "id": "train-drive-thru-order-taking#0",
+  "q": "How quickly must a driver be welcomed at the speaker post?",
+  "audience": "manager",
+  "doc_id": "train-drive-thru-order-taking",
+  "type": "training",
+  "expect": "within 5 seconds"
+ },
+ {
+  "id": "train-suggestive-selling#0",
+  "q": "What attach rate should each restaurant aim for on extras?",
+  "audience": "manager",
+  "doc_id": "train-suggestive-selling",
+  "type": "training",
+  "expect": "35 percent"
+ },
+ {
+  "id": "kpi-targets#0",
+  "q": "What share of revenue should be spent on staff wages?",
+  "audience": "manager",
+  "doc_id": "kpi-targets",
+  "type": "training",
+  "expect": "28 percent of sales"
+ },
+ {
+  "id": "train-forecast-tool#0",
+  "q": "What service level does the buffer stock in the ordering plan assume?",
+  "audience": "manager",
+  "doc_id": "train-forecast-tool",
+  "type": "training",
+  "expect": "95 percent service level"
+ }
+]

@@ -1,0 +1,31 @@
+name: eval-llm
+# Manual workflow: runs the full evaluation against a real model and uploads the reports.
+# Add ANTHROPIC_API_KEY (or OPENAI_API_KEY) under Settings > Secrets and variables > Actions.
+on:
+  workflow_dispatch:
+    inputs:
+      backend:
+        description: "anthropic or openai"
+        default: anthropic
+jobs:
+  eval:
+    runs-on: ubuntu-latest
+    timeout-minutes: 45
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with: { python-version: "3.12", cache: pip }
+      - run: pip install -e ".[dev,llm]"
+      - name: Evaluate with a real LLM
+        env:
+          LLM_BACKEND: ${{ inputs.backend }}
+          ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
+          OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
+        run: python -m qsr_assistant.eval.evaluate --llm online --workers 4
+      - run: python scripts/make_resume_bullets.py
+      - uses: actions/upload-artifact@v4
+        with:
+          name: llm-eval
+          path: |
+            reports/
+            docs/RESUME_BULLETS.md

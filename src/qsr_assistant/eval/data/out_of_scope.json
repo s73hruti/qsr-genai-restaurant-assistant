@@ -1,0 +1,66 @@
+[
+ {
+  "q": "Do you sell pizza?",
+  "mode": "customer"
+ },
+ {
+  "q": "What is the capital of France?",
+  "mode": "customer"
+ },
+ {
+  "q": "Can I order sushi at the Riverside store?",
+  "mode": "customer"
+ },
+ {
+  "q": "How do I cook a turkey?",
+  "mode": "customer"
+ },
+ {
+  "q": "Who is the CEO of the company?",
+  "mode": "customer"
+ },
+ {
+  "q": "What is the Wi-Fi password in your restaurants?",
+  "mode": "customer"
+ },
+ {
+  "q": "Can you write me a poem about the ocean?",
+  "mode": "customer"
+ },
+ {
+  "q": "What is the price of Bitcoin?",
+  "mode": "customer"
+ },
+ {
+  "q": "Do you deliver to the moon?",
+  "mode": "customer"
+ },
+ {
+  "q": "Which football team won yesterday?",
+  "mode": "customer"
+ },
+ {
+  "q": "What is the pension scheme for crew?",
+  "mode": "manager"
+ },
+ {
+  "q": "How do I configure the office Wi-Fi router?",
+  "mode": "manager"
+ },
+ {
+  "q": "What is the salary of the area manager?",
+  "mode": "manager"
+ },
+ {
+  "q": "What are our competitors charging for burgers?",
+  "mode": "manager"
+ },
+ {
+  "q": "How do I replace a car tyre?",
+  "mode": "manager"
+ },
+ {
+  "q": "Summarise the plot of Hamlet",
+  "mode": "manager"
+ }
+]

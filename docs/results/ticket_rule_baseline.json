@@ -1,0 +1,10 @@
+{
+ "n": 120,
+ "valid_json_%": 100.0,
+ "category_acc_%": 100.0,
+ "severity_acc_%": 100.0,
+ "store_id_acc_%": 100.0,
+ "needs_human_acc_%": 100.0,
+ "items_acc_%": 81.7,
+ "exact_match_%": 81.7
+}

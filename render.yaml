@@ -1,0 +1,16 @@
+# Render Blueprint: New > Blueprint > pick this repo. Free plan sleeps when idle (cold start ~1 min).
+services:
+  - type: web
+    name: qsr-genai-assistant
+    runtime: docker
+    plan: free
+    healthCheckPath: /health
+    envVars:
+      - key: LLM_BACKEND
+        value: auto
+      - key: ANTHROPIC_API_KEY
+        sync: false          # set in the Render dashboard; omit to run in offline mode
+      - key: MANAGER_API_KEY
+        generateValue: true  # required header X-Manager-Key for manager mode
+      - key: RATE_LIMIT_PER_MIN
+        value: "60"

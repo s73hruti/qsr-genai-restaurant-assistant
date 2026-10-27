@@ -1,0 +1,174 @@
+[
+ {
+  "q": "How long is the wait at store 3 right now?",
+  "mode": "customer",
+  "expect_tools": [
+   "wait_time"
+  ]
+ },
+ {
+  "q": "What's the queue like at store 7 at 6pm?",
+  "mode": "customer",
+  "expect_tools": [
+   "wait_time"
+  ]
+ },
+ {
+  "q": "It's 36\u00b0C outside, what's on the menu board?",
+  "mode": "customer",
+  "expect_tools": [
+   "dynamic_menu"
+  ]
+ },
+ {
+  "q": "What should I order with a Double Cheese Burger?",
+  "mode": "customer",
+  "expect_tools": [
+   "recommend"
+  ]
+ },
+ {
+  "q": "I'm hungry, any suggestions?",
+  "mode": "customer",
+  "expect_tools": [
+   "recommend"
+  ]
+ },
+ {
+  "q": "How long until my order is ready at store 12?",
+  "mode": "customer",
+  "expect_tools": [
+   "wait_time"
+  ]
+ },
+ {
+  "q": "Is there a vegetarian burger?",
+  "mode": "customer",
+  "expect_tools": [
+   "search_knowledge"
+  ]
+ },
+ {
+  "q": "When do refunds arrive?",
+  "mode": "customer",
+  "expect_tools": [
+   "search_knowledge"
+  ]
+ },
+ {
+  "q": "What do I need to reach Gold tier?",
+  "mode": "customer",
+  "expect_tools": [
+   "search_knowledge"
+  ]
+ },
+ {
+  "q": "Does the Maple Grove store have a drive-thru?",
+  "mode": "customer",
+  "expect_tools": [
+   "search_knowledge"
+  ]
+ },
+ {
+  "q": "Tell me about the cone offer",
+  "mode": "customer",
+  "expect_tools": [
+   "search_knowledge"
+  ]
+ },
+ {
+  "q": "How many calories are in the Classic Burger?",
+  "mode": "customer",
+  "expect_tools": [
+   "search_knowledge"
+  ]
+ },
+ {
+  "q": "Can I pay with a gift card?",
+  "mode": "customer",
+  "expect_tools": [
+   "search_knowledge"
+  ]
+ },
+ {
+  "q": "Forecast demand for store 3",
+  "mode": "customer",
+  "expect_tools": []
+ },
+ {
+  "q": "How much beef should store 5 order for 3 days?",
+  "mode": "customer",
+  "expect_tools": []
+ },
+ {
+  "q": "How much beef should store 5 order for 3 days?",
+  "mode": "manager",
+  "expect_tools": [
+   "plan_inventory"
+  ]
+ },
+ {
+  "q": "Forecast demand for this week",
+  "mode": "manager",
+  "expect_tools": [
+   "forecast_demand"
+  ]
+ },
+ {
+  "q": "What ingredients do I need to order for store 2 tomorrow?",
+  "mode": "manager",
+  "expect_tools": [
+   "plan_inventory"
+  ]
+ },
+ {
+  "q": "How busy will store 4 be over the next 5 days?",
+  "mode": "manager",
+  "expect_tools": [
+   "forecast_demand"
+  ]
+ },
+ {
+  "q": "What's the expected wait at store 6 at 1pm?",
+  "mode": "manager",
+  "expect_tools": [
+   "wait_time"
+  ]
+ },
+ {
+  "q": "How long can fries be held?",
+  "mode": "manager",
+  "expect_tools": [
+   "search_knowledge"
+  ]
+ },
+ {
+  "q": "When is the ingredient order cutoff?",
+  "mode": "manager",
+  "expect_tools": [
+   "search_knowledge"
+  ]
+ },
+ {
+  "q": "What is the refund approval limit for crew?",
+  "mode": "manager",
+  "expect_tools": [
+   "search_knowledge"
+  ]
+ },
+ {
+  "q": "How often should the fryer oil be filtered?",
+  "mode": "manager",
+  "expect_tools": [
+   "search_knowledge"
+  ]
+ },
+ {
+  "q": "What's the wait at store 2 and what should I order with nuggets?",
+  "mode": "customer",
+  "expect_tools": [
+   "wait_time",
+   "recommend"
+  ]
+ }
+]

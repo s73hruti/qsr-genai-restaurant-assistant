@@ -1,0 +1,35 @@
+name: neural-retrieval-benchmark
+on:
+  workflow_dispatch:
+    inputs:
+      model:
+        description: "SentenceTransformer model ID"
+        required: true
+        default: "sentence-transformers/all-MiniLM-L6-v2"
+      cross_encoder:
+        description: "Run cross-encoder reranking experiment"
+        required: true
+        type: boolean
+        default: false
+jobs:
+  benchmark:
+    runs-on: ubuntu-latest
+    timeout-minutes: 45
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+          cache: pip
+      - run: pip install -e ".[dev,vector]"
+      - name: Run full neural retrieval benchmark
+        shell: bash
+        run: |
+          args=(--model "${{ inputs.model }}")
+          if [[ "${{ inputs.cross_encoder }}" == "true" ]]; then args+=(--cross-encoder); fi
+          python scripts/run_neural_retrieval_benchmark.py "${args[@]}"
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: neural-retrieval-benchmark
+          path: reports/retrieval_neural_benchmark.json

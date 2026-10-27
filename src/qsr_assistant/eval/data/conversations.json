@@ -1,0 +1,80 @@
+[
+ {
+  "mode": "customer",
+  "turns": [
+   {
+    "q": "How much is the Large Fries?",
+    "expect": "$3.40"
+   },
+   {
+    "q": "What about the medium?",
+    "expect": "$2.80"
+   }
+  ]
+ },
+ {
+  "mode": "customer",
+  "turns": [
+   {
+    "q": "Does the Riverside store have a drive-thru?",
+    "expect": "Drive-thru: yes"
+   },
+   {
+    "q": "And what time does it close?",
+    "expect": "11pm"
+   }
+  ]
+ },
+ {
+  "mode": "customer",
+  "turns": [
+   {
+    "q": "What is the Fries Friday offer?",
+    "expect": "20% off a Large Fries"
+   },
+   {
+    "q": "Does it apply on weekends?",
+    "expect": "Fridays"
+   }
+  ]
+ },
+ {
+  "mode": "customer",
+  "turns": [
+   {
+    "q": "How many calories are in the Chocolate Sundae?",
+    "expect": "340 kcal"
+   },
+   {
+    "q": "And the Soft Serve Cone?",
+    "expect": "190 kcal"
+   }
+  ]
+ },
+ {
+  "mode": "manager",
+  "turns": [
+   {
+    "q": "What oil temperature should the fryer use?",
+    "expect": "175"
+   },
+   {
+    "q": "How many cooking cycles before filtering it?",
+    "expect": "40 cooking cycles"
+   }
+  ]
+ },
+ {
+  "mode": "manager",
+  "turns": [
+   {
+    "q": "What is the refund approval limit for crew?",
+    "expect": "up to 5 dollars"
+   },
+   {
+    "q": "And for a shift lead?",
+    "expect": "up to 20 dollars"
+   }
+  ]
+ }
+]

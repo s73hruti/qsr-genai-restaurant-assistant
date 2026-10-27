@@ -1,0 +1,182 @@
+[
+ {
+  "id": "mh0",
+  "q": "Is the Large Fries gluten-free and how much does it cost?",
+  "audience": "customer",
+  "doc_ids": [
+   "guide-gluten",
+   "menu-large-fries"
+  ]
+ },
+ {
+  "id": "mh1",
+  "q": "Can I use Fries Friday together with another offer on the same order?",
+  "audience": "customer",
+  "doc_ids": [
+   "promo-fries20",
+   "faq-offer-stacking"
+  ]
+ },
+ {
+  "id": "mh2",
+  "q": "What is the free delivery threshold, and does the student discount apply to delivery?",
+  "audience": "customer",
+  "doc_ids": [
+   "faq-delivery",
+   "faq-student-discount"
+  ]
+ },
+ {
+  "id": "mh3",
+  "q": "Does the Veggie Delight Burger count as vegan, and how many calories does it have?",
+  "audience": "customer",
+  "doc_ids": [
+   "faq-vegan",
+   "menu-veggie-delight-burger"
+  ]
+ },
+ {
+  "id": "mh4",
+  "q": "Which has a larger delivery radius, the Harbor Point store or the Airport Road store?",
+  "audience": "customer",
+  "doc_ids": [
+   "store-harbor-point",
+   "store-airport-road"
+  ]
+ },
+ {
+  "id": "mh5",
+  "q": "Do I earn double points on weekend orders, and how many points do I need for Gold?",
+  "audience": "customer",
+  "doc_ids": [
+   "promo-gold2x",
+   "faq-loyalty-tiers"
+  ]
+ },
+ {
+  "id": "mh6",
+  "q": "How long do refunds take to arrive, and how long do I have to make a claim?",
+  "audience": "customer",
+  "doc_ids": [
+   "faq-refunds",
+   "policy-refund"
+  ]
+ },
+ {
+  "id": "mh7",
+  "q": "How much is a Hot Coffee, and when is the half-price morning deal?",
+  "audience": "customer",
+  "doc_ids": [
+   "menu-hot-coffee",
+   "promo-morning"
+  ]
+ },
+ {
+  "id": "mh8",
+  "q": "Which of the popular kids items are free of gluten ingredients?",
+  "audience": "customer",
+  "doc_ids": [
+   "faq-kids",
+   "guide-gluten"
+  ]
+ },
+ {
+  "id": "mh9",
+  "q": "Is the Large Fries vegetarian, and does Fries Friday apply to it?",
+  "audience": "customer",
+  "doc_ids": [
+   "menu-large-fries",
+   "promo-fries20"
+  ]
+ },
+ {
+  "id": "mh10",
+  "q": "How much is the Family Bundle compared with buying a single Classic Burger?",
+  "audience": "customer",
+  "doc_ids": [
+   "promo-family",
+   "menu-classic-burger"
+  ]
+ },
+ {
+  "id": "mh11",
+  "q": "Do Eastwood and Airport Road both have a play area?",
+  "audience": "customer",
+  "doc_ids": [
+   "store-eastwood",
+   "store-airport-road"
+  ]
+ },
+ {
+  "id": "mh12",
+  "q": "Can I order the Family Bundle for curbside pickup?",
+  "audience": "customer",
+  "doc_ids": [
+   "promo-family",
+   "faq-curbside"
+  ]
+ },
+ {
+  "id": "mh13",
+  "q": "How many calories are in a Cola, and does it contain gluten?",
+  "audience": "customer",
+  "doc_ids": [
+   "menu-cola",
+   "guide-gluten"
+  ]
+ },
+ {
+  "id": "mh14",
+  "q": "My burger arrived cold. Can I get my money back, and how quickly does it land in my account?",
+  "audience": "customer",
+  "doc_ids": [
+   "policy-refund",
+   "faq-refunds"
+  ]
+ },
+ {
+  "id": "mh15",
+  "q": "Is the breakfast sandwich suitable if I avoid dairy, and what else could I eat instead?",
+  "audience": "customer",
+  "doc_ids": [
+   "menu-breakfast-muffin",
+   "guide-dairy-free"
+  ]
+ },
+ {
+  "id": "mh16",
+  "q": "We are going to the store with a play area on the east side; what do our kids usually order?",
+  "audience": "customer",
+  "doc_ids": [
+   "store-eastwood",
+   "faq-kids"
+  ]
+ },
+ {
+  "id": "mh17",
+  "q": "I am a student ordering on Friday with a burger and large fries; which offers can I stack?",
+  "audience": "customer",
+  "doc_ids": [
+   "faq-student-discount",
+   "faq-offer-stacking"
+  ]
+ },
+ {
+  "id": "mh18",
+  "q": "What can a vegetarian kid with a gluten allergy order from the menu?",
+  "audience": "customer",
+  "doc_ids": [
+   "guide-vegetarian",
+   "guide-gluten"
+  ]
+ },
+ {
+  "id": "mh19",
+  "q": "Can I get the early-morning coffee discount and double points on a Saturday?",
+  "audience": "customer",
+  "doc_ids": [
+   "promo-morning",
+   "promo-gold2x"
+  ]
+ }
+]

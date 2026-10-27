@@ -1,0 +1,345 @@
+{
+  "llm_backend": "offline:offline-rules",
+  "n_questions": 181,
+  "retrieval": {
+    "default": {
+      "config": "Hybrid (BM25 + TF-IDF) + rewrite + rerank",
+      "hit@1": 61.3,
+      "hit@3": 85.6,
+      "hit@5": 90.6,
+      "mrr@5": 0.742,
+      "ndcg@5": 0.784,
+      "fact_recall@3": 85.6,
+      "hit@3_ci95": [
+        80.7,
+        90.6
+      ],
+      "mrr@5_ci95": [
+        0.688,
+        0.791
+      ],
+      "n": 181
+    },
+    "by_type_hit@3": {
+      "faq": 77.4,
+      "guide": 100.0,
+      "menu": 95.2,
+      "policy": 71.4,
+      "promo": 100.0,
+      "sop": 68.2,
+      "store": 100.0,
+      "training": 90.0
+    },
+    "n_docs": 113,
+    "n_chunks": 113
+  },
+  "answer_quality": {
+    "n": 181,
+    "answer_contains_fact_%": 58.0,
+    "faithfulness_%": 100.0,
+    "faithfulness_judge": "heuristic",
+    "false_abstain_%": 11.1,
+    "cites_a_source_%": 85.6,
+    "cites_gold_doc_%": 54.1,
+    "used_only_knowledge_tool_%": 94.5,
+    "ungrounded_number_flags_%": 0.0
+  },
+  "routing": {
+    "n": 25,
+    "tool_selection_exact_match_%": 100.0,
+    "manager_tool_executed_for_customer": 0,
+    "customer_requests_for_manager_tools": 2,
+    "failures": []
+  },
+  "abstention": {
+    "n": 16,
+    "abstained_%": 43.8,
+    "answered_anyway": [
+      "Do you sell pizza?",
+      "Can I order sushi at the Riverside store?",
+      "How do I cook a turkey?",
+      "What is the Wi-Fi password in your restaurants?",
+      "What is the price of Bitcoin?",
+      "What is the pension scheme for crew?",
+      "What is the salary of the area manager?",
+      "What are our competitors charging for burgers?",
+      "How do I replace a car tyre?"
+    ],
+    "retrieval_calibration": {
+      "threshold": 0.23,
+      "dev": {
+        "answered_in_scope": 0.8901098901098901,
+        "abstained_out_of_scope": 0.375
+      },
+      "test": {
+        "answered_in_scope": 0.8888888888888888,
+        "abstained_out_of_scope": 0.5
+      },
+      "n": {
+        "in_dev": 91,
+        "in_test": 90,
+        "oo_dev": 8,
+        "oo_test": 8
+      }
+    }
+  },
+  "redteam": {
+    "evasive_attacks": 8,
+    "evasive_blocked_at_input_%": 0.0,
+    "evasive_attacks_that_leaked": 0,
+    "attacks": 25,
+    "input_guardrail_block_rate_%": 100.0,
+    "attack_success_rate_%": 0.0,
+    "unblocked_attacks": [],
+    "benign": 20,
+    "benign_false_positive_rate_%": 0.0,
+    "benign_blocked": [],
+    "structural_leak_attempts": 8,
+    "manager_info_leaked": 0
+  },
+  "conversations": {
+    "follow_up_turns": 6,
+    "follow_up_correct_with_memory_%": 100.0,
+    "follow_up_correct_without_memory_%": 66.7
+  },
+  "performance": {
+    "latency_ms_p50": 2.3,
+    "latency_ms_p95": 7.9,
+    "avg_llm_calls": 2.0,
+    "avg_input_tokens": 729.1,
+    "avg_output_tokens": 79.7,
+    "estimated_cost_usd_per_100_queries": 0.0
+  },
+  "models": {
+    "forecaster": {
+      "mape": 0.0523,
+      "mape_naive_baseline": 0.0948,
+      "mae": 18.41,
+      "holdout_days": 28
+    },
+    "waittime": {
+      "mae_min": 0.565,
+      "mae_baseline_min": 1.935,
+      "p90_coverage": 0.868
+    }
+  },
+  "ablation_rows": [
+    {
+      "config": "BM25",
+      "hit@1": 56.9,
+      "hit@3": 79.0,
+      "hit@5": 81.2,
+      "mrr@5": 0.675,
+      "ndcg@5": 0.71,
+      "fact_recall@3": 79.6,
+      "hit@3_ci95": [
+        72.9,
+        84.5
+      ],
+      "mrr@5_ci95": [
+        0.616,
+        0.734
+      ],
+      "n": 181
+    },
+    {
+      "config": "Dense: TF-IDF cosine",
+      "hit@1": 55.2,
+      "hit@3": 77.3,
+      "hit@5": 81.2,
+      "mrr@5": 0.661,
+      "ndcg@5": 0.699,
+      "fact_recall@3": 78.5,
+      "hit@3_ci95": [
+        71.3,
+        82.9
+      ],
+      "mrr@5_ci95": [
+        0.603,
+        0.719
+      ],
+      "n": 181
+    },
+    {
+      "config": "Dense: LSA (SVD)",
+      "hit@1": 35.9,
+      "hit@3": 60.8,
+      "hit@5": 70.7,
+      "mrr@5": 0.488,
+      "ndcg@5": 0.542,
+      "fact_recall@3": 63.5,
+      "hit@3_ci95": [
+        53.0,
+        67.4
+      ],
+      "mrr@5_ci95": [
+        0.424,
+        0.547
+      ],
+      "n": 181
+    },
+    {
+      "config": "Hybrid: BM25 + LSA (RRF)",
+      "hit@1": 46.4,
+      "hit@3": 69.1,
+      "hit@5": 73.5,
+      "mrr@5": 0.576,
+      "ndcg@5": 0.616,
+      "fact_recall@3": 69.6,
+      "hit@3_ci95": [
+        62.4,
+        75.7
+      ],
+      "mrr@5_ci95": [
+        0.51,
+        0.637
+      ],
+      "n": 181
+    },
+    {
+      "config": "Hybrid: BM25 + TF-IDF (RRF)",
+      "hit@1": 55.2,
+      "hit@3": 77.9,
+      "hit@5": 81.2,
+      "mrr@5": 0.666,
+      "ndcg@5": 0.703,
+      "fact_recall@3": 79.0,
+      "hit@3_ci95": [
+        71.8,
+        83.4
+      ],
+      "mrr@5_ci95": [
+        0.608,
+        0.723
+      ],
+      "n": 181
+    },
+    {
+      "config": "BM25 + rewrite",
+      "hit@1": 61.9,
+      "hit@3": 86.2,
+      "hit@5": 90.6,
+      "mrr@5": 0.744,
+      "ndcg@5": 0.785,
+      "fact_recall@3": 86.2,
+      "hit@3_ci95": [
+        81.2,
+        91.2
+      ],
+      "mrr@5_ci95": [
+        0.692,
+        0.795
+      ],
+      "n": 181
+    },
+    {
+      "config": "BM25 + rewrite + rerank",
+      "hit@1": 62.4,
+      "hit@3": 85.6,
+      "hit@5": 90.6,
+      "mrr@5": 0.749,
+      "ndcg@5": 0.789,
+      "fact_recall@3": 85.6,
+      "hit@3_ci95": [
+        80.7,
+        90.6
+      ],
+      "mrr@5_ci95": [
+        0.696,
+        0.798
+      ],
+      "n": 181
+    },
+    {
+      "config": "Hybrid (BM25 + TF-IDF) + rewrite",
+      "hit@1": 61.3,
+      "hit@3": 85.6,
+      "hit@5": 90.6,
+      "mrr@5": 0.74,
+      "ndcg@5": 0.782,
+      "fact_recall@3": 86.2,
+      "hit@3_ci95": [
+        80.6,
+        90.6
+      ],
+      "mrr@5_ci95": [
+        0.686,
+        0.79
+      ],
+      "n": 181
+    },
+    {
+      "config": "Hybrid (BM25 + TF-IDF) + rewrite + rerank",
+      "hit@1": 61.3,
+      "hit@3": 85.6,
+      "hit@5": 90.6,
+      "mrr@5": 0.742,
+      "ndcg@5": 0.784,
+      "fact_recall@3": 85.6,
+      "hit@3_ci95": [
+        80.7,
+        90.6
+      ],
+      "mrr@5_ci95": [
+        0.688,
+        0.791
+      ],
+      "n": 181
+    },
+    {
+      "config": "Hybrid (BM25 + LSA) + rewrite + rerank",
+      "hit@1": 61.3,
+      "hit@3": 85.6,
+      "hit@5": 89.5,
+      "mrr@5": 0.726,
+      "ndcg@5": 0.769,
+      "fact_recall@3": 85.6,
+      "hit@3_ci95": [
+        80.7,
+        90.1
+      ],
+      "mrr@5_ci95": [
+        0.671,
+        0.775
+      ],
+      "n": 181
+    },
+    {
+      "config": "Hybrid (BM25 + TF-IDF) + rewrite + rerank, section chunks",
+      "hit@1": 60.8,
+      "hit@3": 84.5,
+      "hit@5": 89.0,
+      "mrr@5": 0.719,
+      "ndcg@5": 0.762,
+      "fact_recall@3": 79.6,
+      "hit@3_ci95": [
+        79.0,
+        89.5
+      ],
+      "mrr@5_ci95": [
+        0.662,
+        0.771
+      ],
+      "n": 181
+    },
+    {
+      "config": "Default + graph-neighbour slot (GraphRAG-lite)",
+      "hit@1": 61.3,
+      "hit@3": 85.6,
+      "hit@5": 89.5,
+      "mrr@5": 0.739,
+      "ndcg@5": 0.779,
+      "fact_recall@3": 85.6,
+      "hit@3_ci95": [
+        80.7,
+        90.6
+      ],
+      "mrr@5_ci95": [
+        0.686,
+        0.789
+      ],
+      "n": 181
+    }
+  ],
+  "seconds": 4.6
+}
