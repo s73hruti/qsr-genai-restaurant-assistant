@@ -1,6 +1,22 @@
 # QSR GenAI Assistant
 
-A tool-calling GenAI assistant for a (fictional) quick-service-restaurant app. An LLM agent answers customer and store-manager questions by **calling tools**: a **hybrid RAG** search over 113 documents and three **ML models** (demand forecast + inventory plan, wait-time, recommender). It ships with **guardrails, session memory, streaming, tracing, cost tracking and an evaluation harness** that gates CI, plus a **LangGraph** version of the agent (with a critic loop), an **MCP server**, **structured output**, **image input**, **Qdrant/FAISS** vector stores, a **GraphRAG-lite** experiment, **fine-tuning scripts** (embedder + QLoRA), a **BEIR benchmark runner** and **deployment configs**.
+**A tool-calling GenAI assistant for a (fictional) quick-service-restaurant app, built to production standards of access control, evaluation and honesty about what was measured.**
+
+An LLM agent answers customer and store-manager questions by calling tools: hybrid RAG over 113 documents plus three ML models (demand forecast and inventory plan, wait time, recommender). Permissions are enforced in code, not by the prompt; answers pass output guardrails; every behaviour claim below is backed by a test or a reproducible evaluation command.
+
+| | |
+|---|---|
+| **Live demo** | _not deployed yet; add your URL here after following [`docs/DEPLOY.md`](docs/DEPLOY.md)_ |
+| **Stack** | Python 3.11+, FastAPI, Anthropic / OpenAI function calling, LangGraph, MCP, scikit-learn, BM25 + dense retrieval (NumPy / FAISS / Qdrant), Streamlit, Docker, GitHub Actions |
+| **Scale** | about 7K lines of source, about 240 tests, 113-document corpus, 181 retrieval questions, 20 stores of synthetic data |
+
+**Highlights**
+
+* **Security by construction.** Manager tools are hidden from customers and re-checked by the executor, so a jailbroken model still cannot run them. The API requires a signed per-user token before it will act on a `user_id`, supports a shared API key, rate limits by real client IP behind a proxy (separate, tighter bucket for LLM-spending routes) and refuses to start in production without its secrets. See [Security and access control](#security-and-access-control).
+* **Measured, not asserted.** A CI evaluation gate covers retrieval, permissions, guardrails and memory. A 12-configuration retrieval ablation with bootstrap CIs reports negative results (hybrid fusion, reranking and GraphRAG-lite did not beat BM25 here).
+* **An output guard that was itself evaluated.** The numeric-grounding check flagged 41.7% of legitimate paraphrased answers in my labelled set before I fixed it, and 0% after, while still catching 100% of the invented numbers in that set (see [Output guardrail evaluation](#output-guardrail-evaluation)).
+* **Two agent implementations with a parity test:** a hand-rolled bounded loop (streaming, cache, tracing) and a LangGraph version with a critic/revise edge, plus an MCP server exposing the same tools.
+* **What is not yet done is stated up front:** no real-LLM evaluation, no deployment, synthetic data only (next section).
 
 > Everything in the bundled corpus is synthetic. The restaurant, menu, stores, policies and data are invented; nothing is derived from a real company.
 
@@ -10,7 +26,9 @@ Read this first. It separates what is measured from what is provided but not yet
 
 | Area | Status |
 |---|---|
-| 227 tests, ruff, offline evaluation gate | **Run and passing** (`pip install -e ".[dev,llm,graph,mcp,qdrant,faiss]"`) |
+| About 240 tests (226 run on a base install, 12 need optional extras), ruff, offline evaluation gate | **Run and passing** (`pip install -e ".[dev,llm,graph,mcp,qdrant,faiss]"` runs everything) |
+| API access control: user-token check, API key, proxy-aware rate limits, production config check | **Run and passing** (`tests/test_api_security.py`); not yet exercised on a public deployment |
+| Numeric-grounding guard measured on 24 legitimate and 14 hallucinated answers | **Run**: 0% false positives, 100% detection (was 41.7% false positives); authored cases, see below |
 | Real Anthropic/OpenAI SDKs against a local fake server (tool calls, streaming, image blocks) | **Run and passing**; not run against the live APIs |
 | LangGraph agent: parity with the hand-rolled agent, critic revise loop, permission denial | **Run and passing** (offline + scripted LLM) |
 | MCP server over real stdio with the official MCP client | **Run and passing** |
@@ -47,7 +65,7 @@ Empty cells are left empty on purpose rather than filled with invented numbers.
 | Streaming (SSE), session memory with isolation, response cache, **rate limiting** | `api/main.py`, `agent/memory.py` |
 | Observability: traces/spans, metrics, token + cost tracking, optional Langfuse | `observability/` |
 | ML models as tools, with honest baselines | `ml/` |
-| Engineering: 227 tests, CI evaluation gate, manual real-LLM eval workflow, Docker, Render/Cloud Run/HF configs | `tests/`, `.github/`, `Dockerfile`, `render.yaml` |
+| Engineering: about 240 tests, CI evaluation gate, manual real-LLM eval workflow, Docker, Render/Cloud Run/HF configs | `tests/`, `.github/`, `Dockerfile`, `render.yaml` |
 
 ## Architecture
 
@@ -97,6 +115,36 @@ flowchart LR
 ```
 
 **Hand-rolled vs LangGraph, honestly.** Both share guardrails, tools, memory and pricing, and `tests/test_graph_agent.py` checks they give the same answers and tool calls. The hand-rolled `Agent` has streaming, caching and tracing; the graph version has the explicit critic edge, a visualisable topology (`GraphAgent.mermaid()`) and is the form most teams will recognise. The graph version is non-streaming and has no cache or tracing yet.
+
+## Security and access control
+
+The service has three independent credentials and a rate limiter. All are optional so a local demo runs open (`/health` reports which are active); `APP_ENV=production` refuses to start unless all three secrets are set.
+
+| Control | Header / setting | What it prevents |
+|---|---|---|
+| Client API key | `X-API-Key` vs `API_KEY`; required on every route except `/health` | Anonymous use of the LLM-backed routes (`/chat*`, `/extract/ticket`): cost abuse |
+| Manager key | `X-Manager-Key` vs `MANAGER_API_KEY`; required for `mode=manager` and the ops routes | A client simply claiming to be a manager |
+| Per-user token | `X-User-Token` = HMAC-SHA256 of `user:<id>` with `USER_TOKEN_SECRET`; required whenever a `user_id` is supplied (`/chat`, `/chat/stream`, `/chat/image`, `/recommend/{id}`, session delete) | Reading another user's personalised results by changing the id (IDOR). Managers with a valid key may inspect any user |
+| Rate limits | `RATE_LIMIT_PER_MIN=60` (default) and `RATE_LIMIT_LLM_PER_MIN=20` (default), separate token buckets | Flooding; LLM routes get the tighter bucket |
+| Real client IP | `TRUSTED_PROXY_HOPS=N` takes the N-th entry from the right of `X-Forwarded-For` | Behind a proxy every user sharing one bucket, and clients spoofing the header to dodge limits (the header is ignored when N=0) |
+| Production guard | `APP_ENV=production` | Booting a public instance without its secrets |
+
+Design notes:
+
+* **`user_id` is never trusted from the request body alone.** Your auth backend mints the token (`qsr_assistant.api.security.mint_user_token(user_id)`); in a real system replace it with the JWT your identity provider already issues. Anonymous requests (no `user_id`) are still allowed.
+* **`/wait-time` is public on purpose:** it returns store-level numbers and no user data. It is still rate limited and still behind the API key when one is set.
+* **The rate limiter cannot be reset by flooding.** When the table is full it forgets the clients with the most tokens left (nothing to lose) and keeps throttled ones; there is a regression test for this.
+* **Comparisons use `hmac.compare_digest`.** Secrets are never logged.
+* The limiter is in-process. For more than one replica use a gateway or Redis.
+
+```bash
+# mint a token on your backend, then call the API as that user
+python -c "from qsr_assistant.api.security import mint_user_token; print(mint_user_token(7, 'your-secret'))"
+curl -H "X-API-Key: $API_KEY" -H "X-User-Token: <token>" localhost:8000/recommend/7   # 200
+curl -H "X-API-Key: $API_KEY" -H "X-User-Token: <token>" localhost:8000/recommend/8   # 403: not your id
+```
+
+Deployment profiles (open public demo versus private production) are in [`docs/DEPLOY.md`](docs/DEPLOY.md).
 
 ## Quick start
 
@@ -154,6 +202,7 @@ The offline backend replaces the LLM with a rule-based stand-in, so **it exercis
 | Faithfulness | 100% (lexical judge on extractive answers; trivially high) | _not run_ |
 | Tool-selection exact match (25 cases) | 100% (rules written alongside the cases: circular) | _not run_ |
 | Manager tools executed for customers | 0 of 2 requests (executor-enforced) | _not run_ |
+| Numeric-grounding guard: legitimate answers wrongly flagged / invented numbers caught (24 / 14 cases) | 0% / 100% (measured without an LLM; was 41.7% / 100% before the fix) | _rate at which real answers get replaced is reported as `answers_replaced_by_guard_%`: not run_ |
 | Valid questions wrongly declined | 11.1% | _not run_ |
 | Out-of-scope questions declined (16) | 43.8% | _not run_ |
 | Plain attacks blocked at input (25) / benign false positives (20) | 100% / 0% (patterns written alongside the set) | n/a (input stage) |
@@ -161,6 +210,16 @@ The offline backend replaces the LLM with a rule-based stand-in, so **it exercis
 | Plain manager-info requests that leaked (8) | 0 | _not run_ |
 | Follow-up questions correct, memory on / off (6 turns) | 100% / 66.7% | _not run_ |
 | ML hold-out | demand MAPE 5.2% vs 9.5% seasonal-naive; wait MAE 0.57 vs 1.94 min | same |
+
+### Output guardrail evaluation
+
+The numeric-grounding check flags any number in an answer that cannot be traced to the tool results or the question. A literal match turned out to be too strict: on 24 realistic, legitimate paraphrases it wrongly flagged **41.7%** (rounding "4.8 min" to "about 5", adding two prices, dividing a total by the number of days, "11pm" as "23:00", numbered steps, counts of listed items). In strict mode that replaces a correct answer with a bare extract. The guard now accepts rounded evidence decimals, differences and quotients of same-line quantities, sums of prices, products with a number the user asked about, counts of what the evidence lists, 12h/24h clock forms, and ignores citation tags and list numbering. Percentages, clock times, store numbers, dates and years are never combined, and small derived integers are never accepted, which is what keeps invented counts ("free refills for 3 hours") flagged.
+
+```bash
+python -m qsr_assistant.eval.guard_eval          # 0.0% false positives, 100.0% of 14 hallucinated numbers detected
+```
+
+Honest limits: the 40 cases (`eval/data/guard_cases.json`) were written by me, so they show the guard's logic, not its behaviour on a real model's output. Two known gaps are kept in the set on purpose and reported, not hidden: number words ("twenty minutes") and codes with digits glued to letters ("SAVE20") are invisible to a digit-based check. One earlier version of my allowance rules let an invented "12 minutes" through (it is 4.8 + 7.2); the labelled set caught that, which is the reason to keep it in CI.
 
 ### Real-LLM evaluation
 
@@ -172,7 +231,7 @@ make eval-llm                         # a few dollars at most; writes reports/ev
 python scripts/make_resume_bullets.py # fills docs/RESUME_BULLETS.md from the measured numbers
 ```
 
-or trigger **Actions > eval-llm > Run workflow** after adding the key as a repository secret. The bullet generator refuses to read an offline report, and every number in its output comes from the JSON. Set `JUDGE_BACKEND` to a different provider than the one under test so the model is not grading itself.
+Start with a cheap smoke test (`python -m qsr_assistant.eval.evaluate --llm online --limit 5 --out reports/eval_online_smoke.json`). For neural retrieval run `python scripts/run_neural_retrieval_benchmark.py` (needs `.[vector]`; it fails loudly rather than silently falling back to TF-IDF). Or trigger **Actions > eval-llm > Run workflow** after adding the key as a repository secret. The bullet generator refuses to read an offline report, and every number in its output comes from the JSON. Set `JUDGE_BACKEND` to a different provider than the one under test so the model is not grading itself.
 
 ### Retrieval ablation (181 questions, 113 documents, 95% bootstrap CIs on Hit@3)
 
@@ -237,83 +296,19 @@ See [`training/README.md`](training/README.md). Two experiments with leak-free p
 
 ## Resume bullets
 
-Supported by what has been run today (no LLM-dependent numbers):
+Every claim below is supported by something run in this repository (no LLM-dependent numbers). Edit the wording, keep the numbers, and add the real-LLM results once you have them.
 
-* Built a tool-calling GenAI assistant (Claude/OpenAI function calling, bounded agent loop, streaming FastAPI, MCP server) that combines hybrid RAG over 113 documents with demand-forecast, wait-time and recommender models as tools; re-implemented the agent in LangGraph with a critic/verifier loop and verified behavioural parity with 227 automated tests.
-* Ran a 12-configuration retrieval ablation (BM25, dense, RRF hybrid, query rewriting, reranking, FAISS/Qdrant stores, GraphRAG-lite) on 181 questions with bootstrap CIs; found query rewriting gave +7 pts Hit@3 while hybrid fusion, a lexical reranker and graph expansion gave no significant gain over BM25 on a small corpus.
-* Designed layered LLM safety with permissions enforced in the tool executor (0 manager-tool executions for customers), injection screening, PII redaction, numeric-grounding output checks and indirect-injection sanitising for both documents and image input.
-* Added schema-validated structured output with a repair loop, an evaluation harness with a CI gate, tracing, token/cost tracking, rate limiting and Docker/Render deployment configs.
+* Built a tool-calling GenAI assistant (Claude/OpenAI function calling, bounded agent loop, streaming FastAPI, MCP server) combining hybrid RAG over 113 documents with demand-forecast, wait-time and recommender models as tools; re-implemented the agent in LangGraph with a critic/verifier loop and verified behavioural parity with about 240 automated tests.
+* Secured the API against impersonation and cost abuse: HMAC per-user tokens so a `user_id` cannot be forged, API-key and manager-key checks, default-on rate limits with a separate LLM bucket keyed on real client IPs behind a proxy, and a production flag that refuses to boot without secrets; permissions are also enforced in the tool executor (0 manager-tool executions for customers across red-team tests).
+* Measured and fixed my own output guardrail: a labelled set showed the numeric-grounding check wrongly flagged 41.7% of legitimate answers; widening it to accept rounding, sums, quotients, counts and clock conversions cut that to 0% while still catching 100% of invented numbers, with the set added to CI.
+* Ran a 12-configuration retrieval ablation (BM25, dense, RRF hybrid, query rewriting, reranking, FAISS/Qdrant, GraphRAG-lite) on 181 questions with bootstrap CIs; query rewriting gave +7 pts Hit@3 while fusion, reranking and graph expansion gave no significant gain over BM25 on a small corpus.
+* Added schema-validated structured output with a repair loop, an evaluation harness with a CI gate, tracing, token/cost tracking and Docker/Render deployment configs.
 
-After you run the real-LLM evaluation, `python scripts/make_resume_bullets.py` writes `docs/RESUME_BULLETS.md` with faithfulness, answer correctness, tool-selection accuracy and red-team results filled in from the measured report. Add fine-tuning, BEIR and neural-retrieval bullets only after you have run those and have their numbers.
+After you run the real-LLM evaluation, `python scripts/make_resume_bullets.py` writes `docs/RESUME_BULLETS.md` with faithfulness, correctness, tool-selection and red-team results filled in from the measured report. Add fine-tuning, BEIR and neural-retrieval bullets only after you have run those and have their numbers. Be ready to explain every module you list: interviewers will ask.
 
+## Citations and evidence
 
-
-## Evaluation upgrade: real LLM + neural retrieval
-
-The default setup is intentionally offline and reproducible. It is **not evidence of real-provider
-answer quality**. Before reporting GenAI quality metrics, run the provider-backed evaluation and keep
-the generated report with the commit/configuration that produced it.
-
-### 1) Real-provider answer evaluation
-
-```bash
-pip install -e ".[dev,llm]"
-cp .env.example .env  # then add provider key(s); never commit .env
-set -a; source .env; set +a
-# Start with a small, low-cost smoke test:
-python -m qsr_assistant.eval.evaluate --llm online --limit 5 --workers 1 --out reports/eval_online_smoke.json
-# Then run the full curated evaluation:
-python -m qsr_assistant.eval.evaluate --llm online --workers 1 --out reports/eval_online.json
-```
-
-Set `LLM_BACKEND=openai` or `LLM_BACKEND=anthropic`. Set `JUDGE_BACKEND` to a separately configured
-provider where practical; if it resolves to the offline backend, the report will use the heuristic
-judge, not an LLM judge. Provider calls can incur charges. Review model pricing and set provider-side
-spending limits first. Reports now include per-question answers, expected/cited document IDs, chunk IDs,
-tool calls, guardrail flags, latency and token/cost usage. Treat reports as potentially sensitive if
-you replace the synthetic corpus with real customer data.
-
-### 2) Neural retrieval benchmark
-
-```bash
-pip install -e ".[dev,vector]"
-python scripts/run_neural_retrieval_benchmark.py
-# Optional cross-encoder experiment (downloads another model):
-python scripts/run_neural_retrieval_benchmark.py --cross-encoder
-# Quick smoke test only; do not use limited-set numbers as final results:
-python scripts/run_neural_retrieval_benchmark.py --limit 10
-```
-
-This explicit benchmark compares BM25, dense neural retrieval, hybrid RRF, and hybrid + reranking on
-the same curated retrieval set. It writes `reports/retrieval_neural_benchmark.json`, including Recall@1/3/5,
-MRR@5, nDCG@5, local retrieval latency, and failure examples. Neural model download or initialization
-errors fail loudly instead of silently falling back to TF-IDF. Results are hardware/model-specific; do
-not claim an improvement unless the measured numbers support it. The benchmark's latency excludes LLM
-generation and should not be presented as end-to-end latency.
-
-### 3) Grounded citations and evidence
-
-Knowledge search returns `doc_id`, `chunk_id`, source filename, heading, and retrieved text. The API
-response's `sources` field exposes this evidence for inspection. The answer-generation prompt requests
-`[doc_id]` citations and the output guard checks unsupported numbers; the evaluation separately records
-whether the expected document was cited. This is not a formal claim-level entailment guarantee: inspect
-citation correctness and faithfulness scores, and keep abstention enabled when retrieval confidence is low.
-
-### 4) Security / deployment checks
-
-```bash
-pytest -q
-ruff check src tests scripts
-python -m qsr_assistant.eval.evaluate --check
-```
-
-The existing suite includes tool permission, customer/manager separation, prompt-injection, output
-leakage, and failure-path tests. Add new adversarial examples to `src/qsr_assistant/eval/data/redteam.json`
-when a regression is found. `MANAGER_API_KEY` must be set for a remotely exposed demo. The in-process
-rate limiter and session/cache state are single-instance only; use a gateway/Redis-backed shared state
-before multi-replica deployment. Do not treat the provided deployment files as a deployment already
-performed; verify the live service, health endpoint, secrets, and logs after deploying.
-
+Knowledge search returns `doc_id`, `chunk_id`, source filename, heading and retrieved text; the API response's `sources` field exposes them. The prompt asks for `[doc_id]` citations and the evaluation records whether the expected document was cited. This is not a claim-level entailment guarantee: inspect citation correctness and faithfulness, and keep abstention enabled when retrieval confidence is low. Add new adversarial examples to `src/qsr_assistant/eval/data/redteam.json` whenever a regression is found.
 
 ## Known limitations
 
@@ -325,7 +320,9 @@ performed; verify the live service, health endpoint, secrets, and logs after dep
 * The vision path is tested for request shape and sanitising against a fake server, not against a live vision model.
 * The Langfuse adapter is a best-effort integration written against the v3 SDK and not tested with live keys. Traces also work without it (`TRACE_FILE`, `/traces`).
 * Streaming sends tokens before output guardrails run; the `final` event is authoritative and clients should replace the streamed text.
-* `mode=manager` is client-supplied unless `MANAGER_API_KEY` is set. A production system should derive it from real authentication. The rate limiter is in-process; use a gateway or Redis for multiple replicas.
+* **Authentication is shared-secret based.** The API key, manager key and HMAC user token are the minimum that closes the impersonation and cost-abuse holes; a real system would derive identity and role from its identity provider (JWT/OIDC) and keep secrets in a secret manager. The rate limiter is in-process: use a gateway or Redis for multiple replicas. The MCP HTTP transport has no auth.
+* **The ML models are a method demonstration, not evidence.** Their training data is generated by `data/synthetic.py` with the effects hard-coded, so the 5.2% vs 9.5% MAPE mostly shows gradient boosting beating a one-week-lag baseline on data with 6% noise. The forecaster uses a time index as a tree feature, so a trend beyond the training range is not extrapolated; it is reliable for a few days ahead, not for long horizons.
+* **Several offline numbers are circular** (tool selection, plain-attack blocking, lexical faithfulness): the rules and patterns were written alongside the cases. They are regression checks, not performance claims.
 * The offline follow-up resolver is heuristic; with an online LLM the query is rewritten by the model instead.
 
 ## Project layout
@@ -350,19 +347,21 @@ docs/             ARCHITECTURE.md, DEPLOY.md, results/
 
 ## API
 
-| Endpoint | Purpose |
-|---|---|
-| `POST /chat` | `{message, mode, user_id, store_id, session_id}` -> answer, tools, sources, guardrails, usage, trace id |
-| `POST /chat/stream` | Same, as server-sent events (`token`, `tool_call`, `tool_result`, `degraded`, `final`) |
-| `POST /chat/image` | Chat with a base64 image (validated, described, sanitised) |
-| `POST /extract/ticket` | Complaint text -> schema-validated ticket |
-| `DELETE /sessions/{id}` | Clear conversation memory |
-| `GET /health` · `/metrics` · `/traces` | Config, counters + latency percentiles + cost, recent traces |
-| `GET /forecast/{store}` · `/inventory/{store}` · `/wait-time/{store}` · `/recommend/{user}` | Direct model endpoints |
+| Endpoint | Purpose | Access |
+|---|---|---|
+| `POST /chat` | `{message, mode, user_id, store_id, session_id}` -> answer, tools, sources, guardrails, usage, trace id | API key; manager key if `mode=manager`; user token if `user_id` set; LLM rate bucket |
+| `POST /chat/stream` | Same, as server-sent events (`token`, `tool_call`, `tool_result`, `degraded`, `final`) | same as `/chat` |
+| `POST /chat/image` | Chat with a base64 image (validated, described, sanitised) | same as `/chat` |
+| `POST /extract/ticket` | Complaint text -> schema-validated ticket | API key; LLM rate bucket |
+| `DELETE /sessions/{id}` | Clear conversation memory | API key; user token if `user_id` set |
+| `GET /recommend/{user}` | Personalised picks | API key; that user's token or a manager key |
+| `GET /wait-time/{store}` | Store-level wait estimate | API key if set; public otherwise; rate limited |
+| `GET /forecast/{store}` · `/inventory/{store}` · `/metrics` · `/traces` | Manager and ops views | API key + manager key |
+| `GET /health` | Config, retrieval settings and which auth controls are active | none, never rate limited |
 
 ## Configuration
 
-All switches are environment variables; see [`.env.example`](.env.example) (LLM backend, retrieval mode, embedding model, reranker, vector store, graph expansion, rewrite, chunking, abstain threshold, output guard mode, manager key, rate limit, MCP mode, tracing).
+All switches are environment variables; see [`.env.example`](.env.example) (LLM backend, retrieval mode, embedding model, reranker, vector store, graph expansion, rewrite, chunking, abstain threshold, output guard mode, API key, manager key, user-token secret, rate limits, trusted proxy hops, production switch, MCP mode, tracing).
 
 ## Interview talking points
 
@@ -371,4 +370,6 @@ All switches are environment variables; see [`.env.example`](.env.example) (LLM 
 3. *Why LangGraph if the hand-rolled loop works?* The critic-to-agent revise edge is explicit and visualisable, and the parity tests show the framework adds structure without changing behaviour. Be candid about what the framework version lacks.
 4. *How do you know the system is safe/accurate?* Layered measurement: retrieval metrics with CIs, numeric-grounding guard, red-team sets including evasive attacks, regression gate in CI, and (once run) an LLM-judged evaluation with a different judge model.
 5. *How does image input stay safe?* Treat the vision description as untrusted retrieved data: validate the upload, constrain the describer, sanitise, quote it as data, then reuse the normal guardrails.
-6. *What would break in production?* Client-supplied mode, regex guardrails, synthetic data, single-process memory/cache and rate limiter (use Redis/gateway), no auth on the MCP HTTP transport.
+6. *What would break in production?* Shared-secret auth instead of a real identity provider, regex input guardrails, synthetic data, single-process memory/cache and rate limiter (use Redis/gateway), no auth on the MCP HTTP transport.
+7. *How is your API protected?* Walk through the table in Security and access control: a user token makes `user_id` unforgeable (IDOR), the API key and a tighter LLM bucket stop cost abuse, `TRUSTED_PROXY_HOPS` makes the limiter see real client IPs without trusting spoofable header entries, and a production flag refuses to boot without secrets. A regression test covers a limiter-eviction flaw (flooding with throw-away keys used to reset a throttled client) that was found while testing.
+8. *Your guard flagged 42% of good answers. How did you find that?* I wrote labelled legitimate and hallucinated cases, measured, then widened the guard only as far as the hallucinated set allowed; the first widening let through an invented "12 minutes", so I tightened it and kept the case as a regression test.

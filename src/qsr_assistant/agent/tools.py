@@ -90,7 +90,7 @@ def search_knowledge(ctx: ToolContext, a: dict) -> ToolResult:
 
 
 def forecast_demand(ctx: ToolContext, a: dict) -> ToolResult:
-    sid, days = _store(ctx, a), max(int(a.get("days", 3)), 3)
+    sid, days = _store(ctx, a), max(1, min(int(a.get("days", 3)), 14))
     start = date.today() + timedelta(days=1)
     fc = ctx.reg.forecaster.predict(sid, start, days)
     peak = fc.loc[fc.forecast.idxmax()]
