@@ -2,6 +2,9 @@
 
 
 ## Unreleased
+* Eval: works with any OpenAI-compatible endpoint (`LLM_BASE_URL`, `LLM_API_KEY`, `LLM_MODEL`; compat switches `LLM_TOKEN_PARAM`, `LLM_STREAM_USAGE`, `LLM_MIN_INTERVAL_S`, `LLM_MAX_RETRIES`), so it can run on free tiers or local Ollama; see `docs/FREE_EVAL.md`.
+* Fix: the judge now honours `JUDGE_MODEL` / `JUDGE_BASE_URL` / `JUDGE_API_KEY` (it previously always used the model under test, despite the docs). Warns when judge == model under test.
+* Eval now reports answers served by the offline fallback after provider errors and failed judge calls instead of hiding them; `make_resume_bullets.py` refuses heuristic-judge or fallback-contaminated reports.
 * Fix: model artifacts are no longer committed and are stamped with the NumPy / scikit-learn versions that wrote them; stale or unreadable pickles are retrained automatically instead of crashing (`PCG64 is not a known BitGenerator module` on NumPy 1.x).
 * Fix: `forecast_demand` honours the requested horizon (`days=1` used to return 3 days).
 * Security: per-user HMAC tokens, optional API key, default-on rate limits with a separate LLM bucket, proxy-aware client IPs, `APP_ENV=production` secret check.
