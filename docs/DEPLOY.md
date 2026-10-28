@@ -4,9 +4,20 @@ The same Docker image runs everywhere; it listens on `$PORT`. Offline mode works
 public demo costs nothing unless you add an LLM key (then set a spend limit with your provider and keep
 `RATE_LIMIT_PER_MIN` on).
 
+## Security profiles
+| Profile | Settings | Use for |
+|---|---|---|
+| Open demo | defaults (`API_KEY` unset), `MANAGER_API_KEY` + `USER_TOKEN_SECRET` set, offline backend or a provider key with a spend cap | public link on a resume; reviewers can open `/docs` |
+| Private / production | `APP_ENV=production`, `API_KEY`, `MANAGER_API_KEY`, `USER_TOKEN_SECRET`; the app refuses to boot if any is missing | anything with real users or real data |
+
+Always set `TRUSTED_PROXY_HOPS` to the number of reverse proxies in front of the app (Render: 1), or
+every user shares one rate-limit bucket. `/wait-time` is intentionally public (store-level numbers,
+no user data) but is still rate limited. The limiter is per process; use a gateway or Redis for
+more than one replica.
+
 ## Render (simplest, free tier)
 1. Push to GitHub. In Render: **New > Blueprint** and select the repo (`render.yaml` is picked up).
-2. Optional: add `ANTHROPIC_API_KEY` in the dashboard. `MANAGER_API_KEY` is generated for you.
+2. Optional: add `ANTHROPIC_API_KEY` in the dashboard. `MANAGER_API_KEY` and `USER_TOKEN_SECRET` are generated for you.
 3. Open `https://<service>.onrender.com/docs`.
 
 ## Google Cloud Run

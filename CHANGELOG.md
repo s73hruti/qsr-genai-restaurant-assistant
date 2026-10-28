@@ -1,5 +1,12 @@
 # Changelog
 
+
+## Unreleased
+* Fix: model artifacts are no longer committed and are stamped with the NumPy / scikit-learn versions that wrote them; stale or unreadable pickles are retrained automatically instead of crashing (`PCG64 is not a known BitGenerator module` on NumPy 1.x).
+* Fix: `forecast_demand` honours the requested horizon (`days=1` used to return 3 days).
+* Security: per-user HMAC tokens, optional API key, default-on rate limits with a separate LLM bucket, proxy-aware client IPs, `APP_ENV=production` secret check.
+* Output guard: numeric-grounding check accepts grounded derivations (false positives on legitimate answers 41.7% -> 0% on the labelled set); new `eval/guard_eval.py`.
+
 ## 0.3.0
 * Agent: LangGraph implementation (`agent/graph.py`) with a critic/verifier node and a single revise loop; parity-tested against the hand-rolled agent.
 * MCP server (`mcp_server/`), stdio and streamable-http; identity fixed by the operator; manager tools unregistered in customer mode. Tested end to end with the official client.

@@ -86,3 +86,12 @@ def test_indirect_prompt_injection_in_documents_is_neutralised(tmp_path, registr
 
 def test_spec_names_are_consistent():
     assert all(k == s.name for k, s in SPECS.items())
+
+
+@pytest.mark.parametrize("asked,expected", [(1, 1), (2, 2), (7, 7), (14, 14), (99, 14), (0, 1)])
+def test_forecast_demand_honours_requested_horizon(registry, asked, expected):
+    """Regression: the horizon used to be floored at 3 days regardless of the request."""
+    res = execute_tool("forecast_demand", {"days": asked, "store_id": 1}, ctx(registry, "manager"))
+    assert res.ok
+    assert len(res.data["forecast"]) == expected
+    assert f"next {expected} days" in res.summary

@@ -1,16 +1,17 @@
 """FastAPI service: /chat, /chat/stream (SSE), sessions, metrics, traces and direct model endpoints.
 
-Manager mode: if MANAGER_API_KEY is set, requests with mode=manager must send the same value in the
-`X-Manager-Key` header. In production derive the mode from your auth layer (JWT claims etc.); the
-mode must never be trusted from the client alone. If MANAGER_API_KEY is unset (local demo) the
-mode is open and /health reports `manager_auth: false`.
+Access control lives in `security.py` (read its docstring for the threat model):
+  X-API-Key       required on everything but /health when API_KEY is set
+  X-Manager-Key   required for mode=manager and the ops endpoints when MANAGER_API_KEY is set
+  X-User-Token    required whenever a user_id is supplied when USER_TOKEN_SECRET is set
+/health reports which of these are active. APP_ENV=production refuses to start without all three.
+/wait-time is deliberately public: it returns store-level numbers and no user data (it is still
+rate limited, and still behind API_KEY when that is set).
 """
 from __future__ import annotations
 
-import hmac
 import json
-import threading
-import time
+from contextlib import asynccontextmanager
 from datetime import date, datetime, timedelta
 from functools import lru_cache
 
@@ -23,40 +24,33 @@ from ..agent.memory import SessionMemory
 from ..config import env
 from ..llm.structured import extract_ticket
 from ..llm.vision import ImageError, image_to_query
-
-app = FastAPI(title="QSR GenAI Assistant", version="0.3.0")
-
-
-class RateLimiter:
-    """Per-client token bucket (in-process). Use Redis or an API gateway for multi-replica setups."""
-
-    def __init__(self):
-        self.buckets: dict[str, tuple[float, float]] = {}
-        self.lock = threading.Lock()
-
-    def allow(self, client: str, per_min: int) -> bool:
-        now = time.monotonic()
-        with self.lock:
-            tokens, last = self.buckets.get(client, (float(per_min), now))
-            tokens = min(float(per_min), tokens + (now - last) * per_min / 60.0)
-            ok = tokens >= 1.0
-            self.buckets[client] = (tokens - 1.0 if ok else tokens, now)
-            if len(self.buckets) > 10_000:  # bound memory
-                self.buckets.clear()
-            return ok
+from . import security as sec
 
 
-_limiter = RateLimiter()
+@asynccontextmanager
+async def lifespan(_app: FastAPI):
+    sec.enforce_production_config()  # refuse to boot a production instance without its secrets
+    yield
+
+
+app = FastAPI(title="QSR GenAI Assistant", version="0.4.0", lifespan=lifespan)
+
+_limiter = sec.RateLimiter()
 
 
 @app.middleware("http")
-async def rate_limit(request: Request, call_next):
-    per_min = int(env("RATE_LIMIT_PER_MIN", "0") or 0)
-    if per_min > 0 and request.url.path != "/health":
-        who = request.client.host if request.client else "unknown"
-        if not _limiter.allow(who, per_min):
-            return JSONResponse({"detail": "rate limit exceeded"}, status_code=429,
-                                headers={"Retry-After": "10"})
+async def guard(request: Request, call_next):
+    """Rate limit first (so key guessing is throttled too), then the shared client API key."""
+    path = request.url.path
+    if path not in sec.PUBLIC_PATHS:
+        per_min = sec.rate_limit_for(path)
+        if per_min > 0:
+            ip = sec.client_ip(request.headers, request.client.host if request.client else None)
+            if not _limiter.allow(sec.bucket_key(ip, path), per_min):
+                return JSONResponse({"detail": "rate limit exceeded"}, status_code=429,
+                                    headers={"Retry-After": "10"})
+        if not sec.api_key_ok(request.headers.get("x-api-key")):
+            return JSONResponse({"detail": "missing or invalid X-API-Key"}, status_code=401)
     return await call_next(request)
 
 
@@ -83,10 +77,12 @@ class TicketRequest(BaseModel):
     text: str = Field(min_length=1, max_length=2000)
 
 
-def _authorize(mode: str, key: str | None) -> None:
-    required = env("MANAGER_API_KEY")
-    if mode == "manager" and required and not hmac.compare_digest(key or "", required):
+def _authorize(mode: str, key: str | None, user_id: int | None = None,
+               user_token: str | None = None) -> None:
+    if mode == "manager" and not sec.manager_key_ok(key):
         raise HTTPException(403, "manager mode requires a valid X-Manager-Key")
+    if not sec.user_token_ok(user_id, user_token, mode, key):
+        raise HTTPException(403, "user_id requires a valid X-User-Token for that user")
 
 
 @app.get("/health")
@@ -97,22 +93,25 @@ def health():
             "retrieval": {"mode": r.mode, "rerank": r.use_rerank, "rewrite": r.use_rewrite,
                           "embedder": r.embedder.name, "vector_store": r.store.name,
                           "documents": r.n_docs, "chunks": len(r.chunks)},
-            "manager_auth": bool(env("MANAGER_API_KEY")), "output_guard_strict": a.guard_strict,
+            "manager_auth": bool(env("MANAGER_API_KEY")), "client_auth": bool(env("API_KEY")),
+            "user_auth": bool(env("USER_TOKEN_SECRET")), "output_guard_strict": a.guard_strict,
             "models": a.reg.metrics}
 
 
 @app.post("/chat")
-def chat(req: ChatRequest, x_manager_key: str | None = Header(None)):
-    _authorize(req.mode, x_manager_key)
+def chat(req: ChatRequest, x_manager_key: str | None = Header(None),
+         x_user_token: str | None = Header(None)):
+    _authorize(req.mode, x_manager_key, req.user_id, x_user_token)
     return get_agent().run(req.message, req.mode, req.user_id, req.store_id,
                            req.session_id).to_dict()
 
 
 @app.post("/chat/image")
-def chat_image(req: ImageChatRequest, x_manager_key: str | None = Header(None)):
+def chat_image(req: ImageChatRequest, x_manager_key: str | None = Header(None),
+               x_user_token: str | None = Header(None)):
     """Multimodal chat: the image is described by a vision model, sanitised, then answered by the
     normal agent loop. Without a configured vision model the image is acknowledged but not analysed."""
-    _authorize(req.mode, x_manager_key)
+    _authorize(req.mode, x_manager_key, req.user_id, x_user_token)
     agent = get_agent()
     try:
         query, info = image_to_query(agent.llm, req.message, req.image_base64, req.media_type)
@@ -130,13 +129,14 @@ def extract(req: TicketRequest):
 
 
 @app.post("/chat/stream")
-def chat_stream(req: ChatRequest, x_manager_key: str | None = Header(None)):
+def chat_stream(req: ChatRequest, x_manager_key: str | None = Header(None),
+                x_user_token: str | None = Header(None)):
     """Server-sent events: token | tool_call | tool_result | degraded | final.
 
     Tokens are streamed as generated; the `final` event carries the authoritative answer, which
     can differ from the streamed text if an output guardrail replaced it - clients should replace.
     """
-    _authorize(req.mode, x_manager_key)
+    _authorize(req.mode, x_manager_key, req.user_id, x_user_token)
     agent = get_agent()
 
     def events():
@@ -151,8 +151,9 @@ def chat_stream(req: ChatRequest, x_manager_key: str | None = Header(None)):
 
 @app.delete("/sessions/{session_id}")
 def delete_session(session_id: str, mode: str = "customer", user_id: int | None = None,
-                   x_manager_key: str | None = Header(None)):
-    _authorize(mode, x_manager_key)
+                   x_manager_key: str | None = Header(None),
+                   x_user_token: str | None = Header(None)):
+    _authorize(mode, x_manager_key, user_id, x_user_token)
     key = SessionMemory.key(mode, user_id, session_id)
     return {"cleared": get_agent().memory.clear(key)}
 
@@ -203,7 +204,10 @@ def wait(store_id: int, hour: int | None = None, queue_len: float | None = None)
 
 
 @app.get("/recommend/{user_id}")
-def recommend(user_id: int, hour: int | None = None, temp_c: float = 28.0, k: int = 3):
+def recommend(user_id: int, hour: int | None = None, temp_c: float = 28.0, k: int = 3,
+              x_manager_key: str | None = Header(None), x_user_token: str | None = Header(None)):
+    """Personalised picks: only for that user (X-User-Token) or a manager."""
+    _authorize("manager" if x_manager_key else "customer", x_manager_key, user_id, x_user_token)
     reg = get_agent().reg
     return reg.recommender.recommend(user_id, hour if hour is not None else datetime.now().hour,
-                                     temp_c, k)
+                                     temp_c, max(1, min(k, 10)))

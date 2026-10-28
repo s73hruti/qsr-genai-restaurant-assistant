@@ -32,3 +32,8 @@ htmlcov/
 # Experiment tracking and generated local data
 mlruns/
 .mlruns/
+
+# Trained model artifacts are build outputs (`make train`, or automatic on first run). Pickles only
+# load under the library versions that wrote them, so they must not be committed.
+artifacts/*
+!artifacts/.gitkeep

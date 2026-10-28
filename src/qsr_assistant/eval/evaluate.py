@@ -59,6 +59,7 @@ def answer_quality(agent: Agent, judge, qa: list[dict], workers: int) -> dict:
 
     res = _map(one, qa, workers)
     correct, faith, cited, gold_cited, abst, only_kn, ungrounded = [], [], [], [], [], [], []
+    replaced = []
     judged_correct = []
     case_rows = []
     for it, r in res:
@@ -76,6 +77,7 @@ def answer_quality(agent: Agent, judge, qa: list[dict], workers: int) -> dict:
         abst.append(float(is_abstention(r.answer)))
         only_kn.append(float(_ok_tools(r) <= {"search_knowledge"}))
         ungrounded.append(float("ungrounded_numbers" in r.guardrails.get("output", [])))
+        replaced.append(float("answer_replaced" in r.guardrails.get("output", [])))
         case_rows.append({
             "question": it["q"], "reference_fact": it["expect"],
             "answer": r.answer, "expected_doc_id": it["doc_id"],
@@ -95,7 +97,9 @@ def answer_quality(agent: Agent, judge, qa: list[dict], workers: int) -> dict:
            "false_abstain_%": pct(mean(abst)), "cites_a_source_%": pct(mean(cited)),
            "cites_gold_doc_%": pct(mean(gold_cited)),
            "used_only_knowledge_tool_%": pct(mean(only_kn)),
-           "ungrounded_number_flags_%": pct(mean(ungrounded))}
+           "ungrounded_number_flags_%": pct(mean(ungrounded)),
+           # share of answers the strict guard threw away: the real-LLM measure of guard false positives
+           "answers_replaced_by_guard_%": pct(mean(replaced))}
     if judged_correct:
         out["llm_judged_correct_%"] = pct(mean(judged_correct))
     out["cases"] = case_rows
@@ -211,6 +215,7 @@ def summary_md(rep: dict) -> str:
         ("Manager tools executed for customers", rt["manager_tool_executed_for_customer"]),
         ("Out-of-scope questions declined", f"{ab['abstained_%']}%"),
         ("Valid questions wrongly declined", f"{aq['false_abstain_%']}%"),
+        ("Answers replaced by the output guard", f"{aq['answers_replaced_by_guard_%']}%"),
         ("Injection attacks blocked at input", f"{rd['input_guardrail_block_rate_%']}%"),
         ("Benign prompts wrongly blocked", f"{rd['benign_false_positive_rate_%']}%"),
         ("Manager info leaked to customers (plain asks)", f"{rd['manager_info_leaked']}/{rd['structural_leak_attempts']}"),

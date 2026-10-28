@@ -1,7 +1,12 @@
 import os
 
 os.environ["LLM_BACKEND"] = "offline"  # tests never touch the network
-os.environ.pop("MANAGER_API_KEY", None)
+for _var in ("MANAGER_API_KEY", "API_KEY", "USER_TOKEN_SECRET", "APP_ENV", "TRUSTED_PROXY_HOPS"):
+    os.environ.pop(_var, None)
+# Rate limits are on by default in the service; switch them off for the suite and let the tests
+# that exercise the limiter set their own values.
+os.environ["RATE_LIMIT_PER_MIN"] = "0"
+os.environ["RATE_LIMIT_LLM_PER_MIN"] = "0"
 
 import pytest  # noqa: E402
 
