@@ -12,5 +12,13 @@ services:
         sync: false          # set in the Render dashboard; omit to run in offline mode
       - key: MANAGER_API_KEY
         generateValue: true  # required header X-Manager-Key for manager mode
+      - key: USER_TOKEN_SECRET
+        generateValue: true  # user_id on /chat, /recommend needs X-User-Token (anonymous chat still works)
       - key: RATE_LIMIT_PER_MIN
         value: "60"
+      - key: RATE_LIMIT_LLM_PER_MIN
+        value: "20"          # tighter bucket for paths that spend LLM tokens
+      - key: TRUSTED_PROXY_HOPS
+        value: "1"           # Render's proxy sets X-Forwarded-For; without this all users share a bucket
+      # Public demo: leave API_KEY unset so reviewers can open /docs. For a private deployment add
+      #   API_KEY (generateValue: true) and APP_ENV=production, which refuses to boot without secrets.

@@ -156,6 +156,8 @@ make api                             # http://localhost:8000/docs
 make ui                              # Streamlit chat, dashboard and traces
 ```
 
+The ML models (`artifacts/*.joblib`) are **build outputs, not committed**: they are trained automatically on first run (a few seconds) or with `make train`, and retrained if they were written by a different NumPy / scikit-learn version or cannot be loaded. This matters because pickles are not portable across library versions: a model file written under NumPy 2.x fails to load under NumPy 1.x with `<class 'numpy.random._pcg64.PCG64'> is not a known BitGenerator module`. If you ever see that error on an old checkout, delete `artifacts/*.joblib` or run `make train`.
+
 Optional extras: `.[llm]` (Anthropic/OpenAI SDKs), `.[graph]` (LangGraph), `.[mcp]`, `.[qdrant]`, `.[faiss]`, `.[vector]` (sentence-transformers), `.[finetune]`, `.[all]`.
 
 With a real model:
@@ -231,7 +233,7 @@ make eval-llm                         # a few dollars at most; writes reports/ev
 python scripts/make_resume_bullets.py # fills docs/RESUME_BULLETS.md from the measured numbers
 ```
 
-Start with a cheap smoke test (`python -m qsr_assistant.eval.evaluate --llm online --limit 5 --out reports/eval_online_smoke.json`). For neural retrieval run `python scripts/run_neural_retrieval_benchmark.py` (needs `.[vector]`; it fails loudly rather than silently falling back to TF-IDF). Or trigger **Actions > eval-llm > Run workflow** after adding the key as a repository secret. The bullet generator refuses to read an offline report, and every number in its output comes from the JSON. Set `JUDGE_BACKEND` to a different provider than the one under test so the model is not grading itself.
+**No paid key?** See [docs/FREE_EVAL.md](docs/FREE_EVAL.md) for running evaluations with local Ollama or a free-tier provider and an independent judge. Start with a cheap smoke test (`python -m qsr_assistant.eval.evaluate --llm online --limit 5 --out reports/eval_online_smoke.json`). For neural retrieval run `python scripts/run_neural_retrieval_benchmark.py` (needs `.[vector]`; it fails loudly rather than silently falling back to TF-IDF). Or trigger **Actions > eval-llm > Run workflow** after adding the key as a repository secret. The bullet generator refuses to read an offline report, and every number in its output comes from the JSON. Set `JUDGE_BACKEND` to a different provider than the one under test so the model is not grading itself.
 
 ### Retrieval ablation (181 questions, 113 documents, 95% bootstrap CIs on Hit@3)
 

@@ -63,12 +63,18 @@ class LLMJudge:
 
     def __init__(self, llm: BaseClient):
         self.llm = llm
+        self.calls = 0
+        self.failures = 0  # provider errors and unparsable replies: report them, they bias the score
 
     def _ask(self, system: str, user: str) -> dict | None:
+        self.calls += 1
         try:
-            return _extract_json(self.llm.chat(system, [Message("user", user)], None, 600).text)
+            out = _extract_json(self.llm.chat(system, [Message("user", user)], None, 600).text)
         except Exception:
-            return None
+            out = None
+        if out is None:
+            self.failures += 1
+        return out
 
     def faithfulness(self, answer: str, evidence: str) -> float | None:
         out = self._ask(

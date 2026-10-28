@@ -5,6 +5,7 @@ services:
     env_file: [.env]
     environment:
       RATE_LIMIT_PER_MIN: "60"
+      RATE_LIMIT_LLM_PER_MIN: "20"
   ui:
     build: .
     command: streamlit run src/qsr_assistant/app/streamlit_app.py --server.port 8501 --server.address 0.0.0.0
