@@ -1,0 +1,324 @@
+[
+ {
+  "id": "L01",
+  "label": "legit",
+  "question": "how long is the wait at store 2?",
+  "evidence": "Store 2 at 6pm on Tue: expected wait about 4.8 min (90% of orders under 7.2 min), based on a typical queue of 5 vehicles/orders and 6 staff.",
+  "answer": "Expect roughly 5 minutes, and nearly all orders are ready in under 8 minutes.",
+  "note": "rounding up an evidence decimal"
+ },
+ {
+  "id": "L02",
+  "label": "legit",
+  "question": "how long is the wait at store 2?",
+  "evidence": "Store 2 at 6pm on Tue: expected wait about 4.8 min (90% of orders under 7.2 min), based on a typical queue of 5 vehicles/orders and 6 staff.",
+  "answer": "About 4.8 minutes on average; 90% of orders are done within 7.2 minutes.",
+  "note": "verbatim numbers (control)"
+ },
+ {
+  "id": "L03",
+  "label": "legit",
+  "question": "how much is a burger and fries?",
+  "evidence": "[menu-classic-burger] Classic Burger: $5.99.\n[menu-medium-fries] Medium Fries: $2.49.",
+  "answer": "A Classic Burger ($5.99) plus Medium Fries ($2.49) comes to $8.48.",
+  "note": "sum of two evidence prices"
+ },
+ {
+  "id": "L04",
+  "label": "legit",
+  "question": "price for 3 hot coffees?",
+  "evidence": "[menu-hot-coffee] Hot Coffee: $2.50.",
+  "answer": "3 hot coffees would be $7.50 at $2.50 each.",
+  "note": "product of a question number and an evidence price"
+ },
+ {
+  "id": "L05",
+  "label": "legit",
+  "question": "how do I reset my password?",
+  "evidence": "[faq-app-login] Open the app, tap Forgot password, enter your email and follow the link we send.",
+  "answer": "1. Open the app.\n2. Tap Forgot password.\n3. Enter your email.\n4. Follow the link we send you.",
+  "note": "numbered steps are list markers, not claims"
+ },
+ {
+  "id": "L06",
+  "label": "legit",
+  "question": "what time does Riverside close?",
+  "evidence": "[store-riverside] Riverside is open 6am to 11pm daily.",
+  "answer": "Riverside closes at 11pm, which is 23:00.",
+  "note": "12h/24h clock conversion"
+ },
+ {
+  "id": "L07",
+  "label": "legit",
+  "question": "what time does Riverside open?",
+  "evidence": "[store-riverside] Riverside is open 6am to 11pm daily.",
+  "answer": "It opens at 06:00 every day.",
+  "note": "24h form with leading zero"
+ },
+ {
+  "id": "L08",
+  "label": "legit",
+  "question": "busiest day this week?",
+  "evidence": "Store 1 demand forecast for the next 3 days: Wed 28 Oct: 390, Thu 29 Oct: 390, Fri 30 Oct: 417. Total 1197 orders; busiest day Friday (~417).",
+  "answer": "Friday 30th October is busiest at about 417 orders, out of 1,197 over the three days.",
+  "note": "ordinal + thousands separator"
+ },
+ {
+  "id": "L09",
+  "label": "legit",
+  "question": "what's the average per day?",
+  "evidence": "Store 1 demand forecast for the next 3 days: Wed 28 Oct: 390, Thu 29 Oct: 390, Fri 30 Oct: 417. Total 1197 orders; busiest day Friday (~417).",
+  "answer": "That works out to about 399 orders a day.",
+  "note": "quotient of two evidence numbers (1197/3)"
+ },
+ {
+  "id": "L10",
+  "label": "legit",
+  "question": "how much higher is Friday than Wednesday?",
+  "evidence": "Store 1 demand forecast for the next 3 days: Wed 28 Oct: 390, Thu 29 Oct: 390, Fri 30 Oct: 417. Total 1197 orders.",
+  "answer": "Friday is about 27 orders higher than Wednesday.",
+  "note": "difference of two evidence numbers"
+ },
+ {
+  "id": "L11",
+  "label": "legit",
+  "question": "what can I get with my points?",
+  "evidence": "Picks for you: Hash Brown ($1.49, you like sides); Iced Coffee ($3.20, hot weather); Classic Burger ($5.99, popular).",
+  "answer": "Here are 3 picks: Hash Brown at $1.49, Iced Coffee at $3.20 and Classic Burger at $5.99.",
+  "note": "count of listed items"
+ },
+ {
+  "id": "L12",
+  "label": "legit",
+  "question": "what offers are on?",
+  "evidence": "[promo-combo5] Combo5: burger, fries and a drink for $5.\n[promo-family] Family Pack: 4 burgers, 2 large fries for $17.99.",
+  "answer": "There are 2 offers right now: Combo5 for $5 and the Family Pack for $17.99.",
+  "note": "count of cited documents"
+ },
+ {
+  "id": "L13",
+  "label": "legit",
+  "question": "how long can fries be held?",
+  "evidence": "[sop-food-holding] Fries may be held in the holding bin for a maximum of 7 minutes.",
+  "answer": "Fries can be held for up to 7 minutes [sop-food-holding].",
+  "note": "control with citation"
+ },
+ {
+  "id": "L14",
+  "label": "legit",
+  "question": "how long can fries be held?",
+  "evidence": "[sop-food-holding] Fries may be held in the holding bin for a maximum of 7 minutes.",
+  "answer": "Up to seven minutes, then they should be discarded [sop-food-holding].",
+  "note": "number word instead of digit"
+ },
+ {
+  "id": "L15",
+  "label": "legit",
+  "question": "is the student discount 10%?",
+  "evidence": "[faq-student-discount] Students get 10% off with a valid ID.",
+  "answer": "Yes, students get 10% off with a valid ID.",
+  "note": "number in the question and evidence"
+ },
+ {
+  "id": "L16",
+  "label": "legit",
+  "question": "do you do 2 for 1 on shakes?",
+  "evidence": "[promo-cone1] Cone1: any cone for $1.",
+  "answer": "I couldn't find a 2-for-1 shake offer. The Cone1 offer is any cone for $1.",
+  "note": "number echoed from the question"
+ },
+ {
+  "id": "L17",
+  "label": "legit",
+  "question": "what's in the family pack and what does it cost?",
+  "evidence": "[promo-family] Family Pack: 4 burgers, 2 large fries for $17.99.",
+  "answer": "The Family Pack has 4 burgers and 2 large fries for $17.99 [promo-family].",
+  "note": "control"
+ },
+ {
+  "id": "L18",
+  "label": "legit",
+  "question": "how many points for a free coffee?",
+  "evidence": "[faq-points-redemption] 150 points redeem a free hot coffee. Points expire after 12 months.",
+  "answer": "A free hot coffee costs 150 points, and points expire after 12 months.",
+  "note": "control"
+ },
+ {
+  "id": "L19",
+  "label": "legit",
+  "question": "how many months do points last?",
+  "evidence": "[faq-points-redemption] 150 points redeem a free hot coffee. Points expire after 12 months.",
+  "answer": "Points expire after a year (12 months).",
+  "note": "'a year' + restated 12"
+ },
+ {
+  "id": "L20",
+  "label": "legit",
+  "question": "what's the order for beef for 2 days?",
+  "evidence": "Store 3 ingredient order for the next 2 day(s) (forecast need + 95% safety stock): beef 61.4 kg.",
+  "answer": "Order about 61 kg of beef to cover the next 2 days.",
+  "note": "rounding down an evidence decimal"
+ },
+ {
+  "id": "L21",
+  "label": "legit",
+  "question": "calories in a spicy chicken burger?",
+  "evidence": "[menu-spicy-chicken-burger] Spicy Chicken Burger: 540 kcal, 28g protein.",
+  "answer": "It has 540 kcal and 28 g of protein.",
+  "note": "unit spacing"
+ },
+ {
+  "id": "L22",
+  "label": "legit",
+  "question": "how far is store 4?",
+  "evidence": "[store-oakridge] Store 4 (Oakridge) is on 12 Elm Street, open 7am to 10pm.",
+  "answer": "Store 4 is at 12 Elm Street and is open 7am to 10pm.",
+  "note": "address numbers from evidence"
+ },
+ {
+  "id": "L23",
+  "label": "legit",
+  "question": "is wifi free?",
+  "evidence": "No relevant information found in the knowledge base.",
+  "answer": "I don't have that information.",
+  "note": "abstention has no numbers"
+ },
+ {
+  "id": "L24",
+  "label": "legit",
+  "question": "how busy is store 1 tomorrow?",
+  "evidence": "Store 1 demand forecast for the next 1 days: Wed 28 Oct: 390. Total 390 orders; busiest day Wednesday (~390).",
+  "answer": "Roughly 390 orders are expected tomorrow.",
+  "note": "control"
+ },
+ {
+  "id": "H01",
+  "label": "hallucinated",
+  "question": "how much is a classic burger?",
+  "evidence": "[menu-classic-burger] Classic Burger: $5.99.",
+  "answer": "A Classic Burger costs $6.49.",
+  "note": "invented price"
+ },
+ {
+  "id": "H02",
+  "label": "hallucinated",
+  "question": "how long is the wait at store 2?",
+  "evidence": "Store 2 at 6pm on Tue: expected wait about 4.8 min (90% of orders under 7.2 min).",
+  "answer": "Expect about 12 minutes.",
+  "note": "invented wait"
+ },
+ {
+  "id": "H03",
+  "label": "hallucinated",
+  "question": "how long is the wait at store 2?",
+  "evidence": "Store 2 at 6pm on Tue: expected wait about 4.8 min (90% of orders under 7.2 min).",
+  "answer": "Expect about 10 minutes.",
+  "note": "rounding must not cover a different number"
+ },
+ {
+  "id": "H04",
+  "label": "hallucinated",
+  "question": "how many points for a free coffee?",
+  "evidence": "[faq-points-redemption] 150 points redeem a free hot coffee.",
+  "answer": "You need 500 points for a free coffee.",
+  "note": "invented points"
+ },
+ {
+  "id": "H05",
+  "label": "hallucinated",
+  "question": "student discount?",
+  "evidence": "[faq-student-discount] Students get 10% off with a valid ID.",
+  "answer": "Students get 20% off every Monday.",
+  "note": "invented percentage and day"
+ },
+ {
+  "id": "H06",
+  "label": "hallucinated",
+  "question": "when does Riverside close?",
+  "evidence": "[store-riverside] Riverside is open 6am to 11pm daily.",
+  "answer": "Riverside is open until 2am on weekends.",
+  "note": "invented hours"
+ },
+ {
+  "id": "H07",
+  "label": "hallucinated",
+  "question": "calories in a spicy chicken burger?",
+  "evidence": "[menu-spicy-chicken-burger] Spicy Chicken Burger: 540 kcal, 28g protein.",
+  "answer": "It has 450 kcal.",
+  "note": "digit transposition"
+ },
+ {
+  "id": "H08",
+  "label": "hallucinated",
+  "question": "how many stores are there?",
+  "evidence": "[store-riverside] Riverside is open 6am to 11pm daily.",
+  "answer": "We have 35 stores nationwide.",
+  "note": "invented count"
+ },
+ {
+  "id": "H09",
+  "label": "hallucinated",
+  "question": "are refills free?",
+  "evidence": "[faq-payment] We accept cards, wallets and cash.",
+  "answer": "Refills are free for 3 hours after purchase.",
+  "note": "small invented integer in a one-line evidence"
+ },
+ {
+  "id": "H10",
+  "label": "hallucinated",
+  "question": "burger and fries total?",
+  "evidence": "[menu-classic-burger] Classic Burger: $5.99.\n[menu-medium-fries] Medium Fries: $2.49.",
+  "answer": "That comes to $9.00.",
+  "note": "wrong sum must not slip through derived-number allowance"
+ },
+ {
+  "id": "H11",
+  "label": "hallucinated",
+  "question": "burger and fries total?",
+  "evidence": "[menu-classic-burger] Classic Burger: $5.99.\n[menu-medium-fries] Medium Fries: $2.49.",
+  "answer": "That comes to $8.99.",
+  "note": "wrong sum off by a cent"
+ },
+ {
+  "id": "H12",
+  "label": "hallucinated",
+  "question": "where is store 4?",
+  "evidence": "[store-oakridge] Store 4 (Oakridge) is on 12 Elm Street.",
+  "answer": "Store 4 is at 123 Main Street.",
+  "note": "invented address"
+ },
+ {
+  "id": "H13",
+  "label": "hallucinated",
+  "question": "how old is the chain?",
+  "evidence": "[faq-opening-hours] Most stores are open daily.",
+  "answer": "We've been serving customers since 1998.",
+  "note": "invented year"
+ },
+ {
+  "id": "H14",
+  "label": "hallucinated",
+  "question": "price for 3 hot coffees?",
+  "evidence": "[menu-hot-coffee] Hot Coffee: $2.50.",
+  "answer": "3 hot coffees would be $9.50.",
+  "note": "wrong product"
+ },
+ {
+  "id": "G01",
+  "label": "hallucinated",
+  "question": "any promo code?",
+  "evidence": "[promo-combo5] Combo5: burger, fries and a drink for $5.",
+  "answer": "Use code SAVE20 at checkout.",
+  "note": "digits glued to letters are invisible to a numeric guard",
+  "known_gap": true
+ },
+ {
+  "id": "G02",
+  "label": "hallucinated",
+  "question": "how long can fries be held?",
+  "evidence": "[sop-food-holding] Fries may be held in the holding bin for a maximum of 7 minutes.",
+  "answer": "Fries can be held for up to twenty minutes.",
+  "note": "number words are invisible to a numeric guard",
+  "known_gap": true
+ }
+]
