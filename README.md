@@ -233,7 +233,7 @@ make eval-llm                         # a few dollars at most; writes reports/ev
 python scripts/make_resume_bullets.py # fills docs/RESUME_BULLETS.md from the measured numbers
 ```
 
-Start with a cheap smoke test (`python -m qsr_assistant.eval.evaluate --llm online --limit 5 --out reports/eval_online_smoke.json`). For neural retrieval run `python scripts/run_neural_retrieval_benchmark.py` (needs `.[vector]`; it fails loudly rather than silently falling back to TF-IDF). Or trigger **Actions > eval-llm > Run workflow** after adding the key as a repository secret. The bullet generator refuses to read an offline report, and every number in its output comes from the JSON. Set `JUDGE_BACKEND` to a different provider than the one under test so the model is not grading itself.
+**No paid key?** [`docs/FREE_EVAL.md`](docs/FREE_EVAL.md) shows how to run it free with local Ollama or a free-tier provider, with an independent judge. Start with a cheap smoke test (`python -m qsr_assistant.eval.evaluate --llm online --limit 5 --out reports/eval_online_smoke.json`). For neural retrieval run `python scripts/run_neural_retrieval_benchmark.py` (needs `.[vector]`; it fails loudly rather than silently falling back to TF-IDF). Or trigger **Actions > eval-llm > Run workflow** after adding the key as a repository secret. The bullet generator refuses to read an offline report, and every number in its output comes from the JSON. Set `JUDGE_BACKEND` to a different provider than the one under test so the model is not grading itself.
 
 ### Retrieval ablation (181 questions, 113 documents, 95% bootstrap CIs on Hit@3)
 

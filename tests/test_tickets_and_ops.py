@@ -61,6 +61,8 @@ def test_resume_script_refuses_offline_report(tmp_path):
 def test_resume_script_fills_numbers_from_a_real_report(tmp_path):
     rep = json.loads((ROOT / "docs" / "results" / "eval_offline.json").read_text())
     rep["llm_backend"] = "anthropic:test-model"
+    rep["answer_quality"]["faithfulness_judge"] = "llm"  # a real report is scored by a real judge
+    rep["answer_quality"]["degraded_answers_%"] = 0.0
     p = tmp_path / "eval_anthropic.json"
     p.write_text(json.dumps(rep))
     out = ROOT / "docs" / "RESUME_BULLETS.md"
@@ -75,3 +77,28 @@ def test_resume_script_fills_numbers_from_a_real_report(tmp_path):
     finally:
         (out.write_text(before) if before is not None else out.unlink(missing_ok=True))
         (ROOT / "docs" / "results" / "eval_anthropic.json").unlink(missing_ok=True)
+
+
+def _fake_real_report(tmp_path, **aq_overrides):
+    rep = json.loads((ROOT / "docs" / "results" / "eval_offline.json").read_text())
+    rep["llm_backend"] = "openai:some-free-model"
+    rep["answer_quality"].update({"faithfulness_judge": "llm", "degraded_answers_%": 0.0})
+    rep["answer_quality"].update(aq_overrides)
+    p = tmp_path / "eval_free.json"
+    p.write_text(json.dumps(rep))
+    return p
+
+
+def _run_bullets(path, *extra):
+    return subprocess.run([sys.executable, str(ROOT / "scripts" / "make_resume_bullets.py"),
+                           "--report", str(path), *extra], capture_output=True, text=True)
+
+
+def test_resume_script_refuses_heuristic_judge_report(tmp_path):
+    r = _run_bullets(_fake_real_report(tmp_path, faithfulness_judge="heuristic"))
+    assert r.returncode != 0 and "heuristic" in (r.stderr + r.stdout).lower()
+
+
+def test_resume_script_refuses_report_contaminated_by_offline_fallback(tmp_path):
+    r = _run_bullets(_fake_real_report(tmp_path, **{"degraded_answers_%": 12.5}))
+    assert r.returncode != 0 and "offline fallback" in (r.stderr + r.stdout).lower()

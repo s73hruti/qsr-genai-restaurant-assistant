@@ -6,6 +6,8 @@
 """
 from __future__ import annotations
 
+import threading
+import time
 from collections.abc import Iterator
 
 from ..config import env
@@ -25,10 +27,30 @@ DEFAULT_MODELS = {"anthropic": "claude-sonnet-5-5", "openai": "gpt-4o-mini"}
 TIMEOUT_S = float(env("LLM_TIMEOUT", "30"))
 
 
+def role_setting(role: str, name: str, default: str = "") -> str:
+    """Setting for the LLM under test (`LLM_*`) or the judge (`JUDGE_*`, falling back to `LLM_*`)."""
+    role = role.upper()
+    return env(f"{role}_{name}") or (env(f"LLM_{name}") if role != "LLM" else "") or default
+
+
 class BaseClient:
     name = "base"
     online = False
     model = ""
+    _min_interval_s = 0.0
+    _last_call = 0.0
+    _throttle_lock = threading.Lock()
+
+    def _throttle(self) -> None:
+        """Space calls out (LLM_MIN_INTERVAL_S) so free-tier requests-per-minute caps are not hit."""
+        gap = self._min_interval_s
+        if gap <= 0:
+            return
+        with BaseClient._throttle_lock:
+            wait = BaseClient._last_call + gap - time.monotonic()
+            if wait > 0:
+                time.sleep(wait)
+            BaseClient._last_call = time.monotonic()
 
     def chat(self, system: str, messages: list[Message], tools: list[dict] | None = None,
              max_tokens: int = 700) -> LLMResponse:
@@ -54,10 +76,11 @@ class AnthropicClient(BaseClient):
     name = "anthropic"
     online = True
 
-    def __init__(self, model: str | None = None):
+    def __init__(self, model: str | None = None, role: str = "LLM"):
         import anthropic
         self.client = anthropic.Anthropic(timeout=TIMEOUT_S, max_retries=2)
-        self.model = model or env("LLM_MODEL") or DEFAULT_MODELS["anthropic"]
+        self.model = model or role_setting(role, "MODEL") or DEFAULT_MODELS["anthropic"]
+        self._min_interval_s = float(role_setting(role, "MIN_INTERVAL_S", "0") or 0)
 
     def _kwargs(self, system, messages, tools, max_tokens) -> dict:
         kw = dict(model=self.model, max_tokens=max_tokens, system=system,
@@ -67,6 +90,7 @@ class AnthropicClient(BaseClient):
         return kw
 
     def chat(self, system, messages, tools=None, max_tokens=700) -> LLMResponse:
+        self._throttle()
         return parse_anthropic(self.client.messages.create(
             **self._kwargs(system, messages, tools, max_tokens)))
 
@@ -86,36 +110,63 @@ class AnthropicClient(BaseClient):
 
 
 class OpenAIClient(BaseClient):
+    """OpenAI Chat Completions client, also used for any OpenAI-compatible endpoint.
+
+    Point it at a free or local provider with `LLM_BASE_URL` / `LLM_API_KEY` / `LLM_MODEL` (and
+    `JUDGE_*` for an independent judge). Compatibility switches for providers that differ:
+      LLM_TOKEN_PARAM=max_tokens      (default max_completion_tokens)
+      LLM_STREAM_USAGE=0              (do not send stream_options)
+      LLM_MIN_INTERVAL_S=4            (minimum seconds between calls, for requests/minute caps)
+      LLM_MAX_RETRIES=5               (SDK retries with backoff on 429/5xx; default 2)
+    """
     name = "openai"
     online = True
+    token_param = "max_completion_tokens"
+    stream_usage = True
 
-    def __init__(self, model: str | None = None):
+    def __init__(self, model: str | None = None, role: str = "LLM"):
         from openai import OpenAI
-        self.client = OpenAI(timeout=TIMEOUT_S, max_retries=2)
-        self.model = model or env("LLM_MODEL") or DEFAULT_MODELS["openai"]
+        base = role_setting(role, "BASE_URL") or None
+        key = role_setting(role, "API_KEY") or env("OPENAI_API_KEY") or ("not-needed" if base else None)
+        self.client = OpenAI(base_url=base, api_key=key, timeout=TIMEOUT_S,
+                             max_retries=int(role_setting(role, "MAX_RETRIES", "2") or 2))
+        self.model = model or role_setting(role, "MODEL") or DEFAULT_MODELS["openai"]
+        self.base_url = base or "https://api.openai.com/v1"
+        self.token_param = env("LLM_TOKEN_PARAM", "max_completion_tokens")
+        self.stream_usage = env("LLM_STREAM_USAGE", "1") not in ("0", "false", "False")
+        self._min_interval_s = float(role_setting(role, "MIN_INTERVAL_S", "0") or 0)
 
     def _kwargs(self, system, messages, tools, max_tokens) -> dict:
-        kw = dict(model=self.model, max_completion_tokens=max_tokens,
-                  messages=to_openai_messages(system, messages))
+        kw = {"model": self.model, self.token_param: max_tokens,
+              "messages": to_openai_messages(system, messages)}
         if tools:
             kw["tools"] = to_openai_tools(tools)
         return kw
 
+    def _stream_kwargs(self, system, messages, tools, max_tokens) -> dict:
+        kw = self._kwargs(system, messages, tools, max_tokens)
+        kw["stream"] = True
+        if self.stream_usage:
+            kw["stream_options"] = {"include_usage": True}
+        return kw
+
     def chat(self, system, messages, tools=None, max_tokens=700) -> LLMResponse:
+        self._throttle()
         return parse_openai(self.client.chat.completions.create(
             **self._kwargs(system, messages, tools, max_tokens)))
 
     def describe_image(self, system, prompt, b64, media_type, max_tokens=300) -> str:
+        self._throttle()
         resp = self.client.chat.completions.create(
-            model=self.model, max_completion_tokens=max_tokens,
+            model=self.model, **{self.token_param: max_tokens},
             messages=[{"role": "system", "content": system},
                       {"role": "user", "content": openai_image_content(b64, media_type, prompt)}])
         return parse_openai(resp).text
 
     def stream(self, system, messages, tools=None, max_tokens=700):
+        self._throttle()
         stream = self.client.chat.completions.create(
-            **self._kwargs(system, messages, tools, max_tokens), stream=True,
-            stream_options={"include_usage": True})
+            **self._stream_kwargs(system, messages, tools, max_tokens))
         text, acc, usage, finish = [], {}, Usage(), ""
         for chunk in stream:
             if getattr(chunk, "usage", None):
@@ -139,16 +190,18 @@ class OpenAIClient(BaseClient):
         yield "final", LLMResponse("".join(text), calls, usage, finish, self.model)
 
 
-def get_llm(backend: str | None = None) -> BaseClient:
-    backend = (backend or env("LLM_BACKEND", "auto")).lower()
+def get_llm(backend: str | None = None, role: str = "LLM") -> BaseClient:
+    """Build a client. role="JUDGE" reads JUDGE_BACKEND / JUDGE_MODEL / JUDGE_BASE_URL / JUDGE_API_KEY,
+    falling back to the LLM_* values, so the judge can be a different model or provider."""
+    backend = (backend or role_setting(role, "BACKEND", "auto")).lower()
     if backend == "auto":
         backend = ("anthropic" if env("ANTHROPIC_API_KEY")
-                   else "openai" if env("OPENAI_API_KEY") else "offline")
+                   else "openai" if (env("OPENAI_API_KEY") or role_setting(role, "BASE_URL")) else "offline")
     try:
         if backend == "anthropic":
-            return AnthropicClient()
+            return AnthropicClient(role=role)
         if backend == "openai":
-            return OpenAIClient()
+            return OpenAIClient(role=role)
     except ImportError:  # SDK not installed: degrade instead of crashing at start-up
         pass
     from .offline import OfflineClient

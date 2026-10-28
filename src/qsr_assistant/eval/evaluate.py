@@ -59,7 +59,7 @@ def answer_quality(agent: Agent, judge, qa: list[dict], workers: int) -> dict:
 
     res = _map(one, qa, workers)
     correct, faith, cited, gold_cited, abst, only_kn, ungrounded = [], [], [], [], [], [], []
-    replaced = []
+    replaced, degraded = [], []
     judged_correct = []
     case_rows = []
     for it, r in res:
@@ -78,6 +78,7 @@ def answer_quality(agent: Agent, judge, qa: list[dict], workers: int) -> dict:
         only_kn.append(float(_ok_tools(r) <= {"search_knowledge"}))
         ungrounded.append(float("ungrounded_numbers" in r.guardrails.get("output", [])))
         replaced.append(float("answer_replaced" in r.guardrails.get("output", [])))
+        degraded.append(float("->offline" in r.llm_backend))  # set by the agent on provider failure
         case_rows.append({
             "question": it["q"], "reference_fact": it["expect"],
             "answer": r.answer, "expected_doc_id": it["doc_id"],
@@ -99,7 +100,12 @@ def answer_quality(agent: Agent, judge, qa: list[dict], workers: int) -> dict:
            "used_only_knowledge_tool_%": pct(mean(only_kn)),
            "ungrounded_number_flags_%": pct(mean(ungrounded)),
            # share of answers the strict guard threw away: the real-LLM measure of guard false positives
-           "answers_replaced_by_guard_%": pct(mean(replaced))}
+           "answers_replaced_by_guard_%": pct(mean(replaced)),
+           # answers the provider failed on (rate limit, timeout...) that came from the offline fallback:
+           # anything above 0 means the "real-LLM" numbers are partly offline numbers
+           "degraded_answers_%": pct(mean(degraded)),
+           "faithfulness_n_scored": len(faith),
+           "judge_calls": getattr(judge, "calls", 0), "judge_failed_calls": getattr(judge, "failures", 0)}
     if judged_correct:
         out["llm_judged_correct_%"] = pct(mean(judged_correct))
     out["cases"] = case_rows
@@ -216,6 +222,8 @@ def summary_md(rep: dict) -> str:
         ("Out-of-scope questions declined", f"{ab['abstained_%']}%"),
         ("Valid questions wrongly declined", f"{aq['false_abstain_%']}%"),
         ("Answers replaced by the output guard", f"{aq['answers_replaced_by_guard_%']}%"),
+        ("Answers served by offline fallback after a provider error", f"{aq['degraded_answers_%']}%"),
+        ("Judge calls that failed", f"{aq['judge_failed_calls']} of {aq['judge_calls']}"),
         ("Injection attacks blocked at input", f"{rd['input_guardrail_block_rate_%']}%"),
         ("Benign prompts wrongly blocked", f"{rd['benign_false_positive_rate_%']}%"),
         ("Manager info leaked to customers (plain asks)", f"{rd['manager_info_leaked']}/{rd['structural_leak_attempts']}"),
@@ -264,13 +272,18 @@ def main(argv=None) -> int:
         print("No online LLM available: set ANTHROPIC_API_KEY or OPENAI_API_KEY "
               "(and install the SDK: pip install '.[llm]')", file=sys.stderr)
         return 2
-    judge_llm = get_llm(__import__("os").environ.get("JUDGE_BACKEND") or None) if args.llm == "online" else None
+    judge_llm = get_llm(role="JUDGE") if args.llm == "online" else None
     judge = get_judge(judge_llm if judge_llm is not None and judge_llm.online else None)
 
     qa = rev.load_qa()
     if args.limit:
         qa = qa[:: max(1, len(qa) // args.limit)][: args.limit]
-    print(f"LLM backend: {llm.name} ({llm.model}); judge: {judge.name}; questions: {len(qa)}")
+    judge_model = f" [{judge_llm.model}]" if judge.name == "llm" else ""
+    print(f"LLM backend: {llm.name} ({llm.model}); judge: {judge.name}{judge_model}; questions: {len(qa)}")
+    if judge.name == "llm" and judge_llm.model == llm.model:
+        print("WARNING: the judge is the same model as the one under test; set JUDGE_MODEL (and "
+              "JUDGE_BASE_URL / JUDGE_API_KEY for another provider) for an independent judge.",
+              file=sys.stderr)
 
     t0 = time.time()
     ablation = rev.run_ablation(qa=qa)
@@ -279,6 +292,9 @@ def main(argv=None) -> int:
     aq, responses = answer_quality(agent, judge, qa, args.workers)
     rep = {
         "llm_backend": f"{llm.name}:{llm.model}", "n_questions": len(qa),
+        "provider": __import__("urllib.parse").parse.urlparse(getattr(llm, "base_url", "") or "").netloc
+                    or llm.name,
+        "judge": f"{judge_llm.name}:{judge_llm.model}" if judge.name == "llm" else "heuristic",
         "retrieval": {"default": default_row, "by_type_hit@3": ablation["by_type_hit@3"],
                       "n_docs": ablation["n_docs"], "n_chunks": ablation["n_chunks"]},
         "answer_quality": aq,
@@ -301,6 +317,14 @@ def main(argv=None) -> int:
     (config.REPORTS_DIR / f"summary_{tag}.md").write_text(summary_md(rep) + "\n")
     print(summary_md(rep))
     print(f"\nWrote {out}")
+    aq_ = rep["answer_quality"]
+    if args.llm == "online" and aq_["degraded_answers_%"] > 0:
+        print(f"WARNING: {aq_['degraded_answers_%']}% of answers fell back to the offline client after "
+              "provider errors, so these numbers mix real and offline answers. Slow down "
+              "(LLM_MIN_INTERVAL_S), lower --limit, or retry.", file=sys.stderr)
+    if aq_["judge_calls"] and aq_["judge_failed_calls"] / aq_["judge_calls"] > 0.1:
+        print(f"WARNING: {aq_['judge_failed_calls']} of {aq_['judge_calls']} judge calls failed; "
+              "faithfulness is computed only over the answers that were scored.", file=sys.stderr)
     if args.check:
         fails = check_thresholds(rep)
         if fails:

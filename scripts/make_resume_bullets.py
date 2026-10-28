@@ -32,7 +32,7 @@ def bullets(rep: dict) -> str:
     best = max(rep["ablation_rows"], key=lambda r: r["hit@3"])
     return f"""# Resume bullets (generated from {rep['llm_backend']}, n={rep['n_questions']} questions)
 
-* Built a tool-calling GenAI assistant ({rep['llm_backend'].split(':')[0]} function calling, bounded agent loop,
+* Built a tool-calling GenAI assistant ({rep.get('provider') or rep['llm_backend'].split(':')[0]} function calling, bounded agent loop,
   LangGraph critic/verifier variant, streaming FastAPI, MCP server) combining hybrid RAG over
   {rep['retrieval']['n_docs']} documents with demand-forecast, wait-time and recommender models as tools.
 * Evaluated the RAG stack with {len(rep['ablation_rows'])} retrieval configurations and bootstrap confidence intervals
@@ -46,13 +46,15 @@ def bullets(rep: dict) -> str:
   out-of-scope questions {ab['abstained_%']}%.
 
 Caveats to keep in the README next to these numbers: synthetic corpus, eval sets written by the author,
-single run (re-run for variance), judge model = {rep.get('judge', 'see report')}.
+single run (re-run for variance), judge model = {rep.get('judge', 'see report')}, model under test = {rep['llm_backend']}.
 """
 
 
 if __name__ == "__main__":
     ap = argparse.ArgumentParser()
     ap.add_argument("--report")
+    ap.add_argument("--allow-degraded", action="store_true",
+                    help="write bullets even if some answers came from the offline fallback")
     a = ap.parse_args()
     path = find_report(a.report)
     if path is None or not path.exists():
@@ -60,6 +62,17 @@ if __name__ == "__main__":
     rep = json.loads(path.read_text())
     if rep["llm_backend"].startswith("offline"):
         sys.exit("This is an offline report; its LLM-dependent metrics are circular. Run `make eval-llm`.")
+    aq = rep["answer_quality"]
+    if aq.get("faithfulness_judge") != "llm":
+        sys.exit("This report was scored by the heuristic judge, which is circular. Re-run with a real judge "
+                 "(see docs/FREE_EVAL.md).")
+    if aq.get("degraded_answers_%", 0) > 0 and not a.allow_degraded:
+        sys.exit(f"{aq['degraded_answers_%']}% of answers came from the offline fallback after provider errors, "
+                 "so these are not purely real-LLM numbers. Re-run more slowly (LLM_MIN_INTERVAL_S) or pass "
+                 "--allow-degraded.")
+    if rep.get("judge") == rep["llm_backend"]:
+        print("note: the judge is the same model as the one under test; say so next to the numbers.",
+              file=sys.stderr)
     (ROOT / "docs" / "RESUME_BULLETS.md").write_text(bullets(rep))
     res = ROOT / "docs" / "results"
     shutil.copy(path, res / path.name)
