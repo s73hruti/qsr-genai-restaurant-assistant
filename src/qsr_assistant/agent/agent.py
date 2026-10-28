@@ -12,6 +12,7 @@ Flow per request
 from __future__ import annotations
 
 import copy
+import re
 import threading
 import time
 from collections import OrderedDict
@@ -21,6 +22,7 @@ from dataclasses import asdict, dataclass, field
 from ..config import env
 from ..guardrails import BLOCK_MESSAGE, check_input, check_output
 from ..llm import BaseClient, Message, Usage, get_llm
+from ..llm.types import ToolCall
 from ..llm.offline import NO_INFO, OfflineClient
 from ..llm.pricing import estimate_cost
 from ..ml.registry import Registry, load_registry
@@ -32,6 +34,18 @@ from .tools import ToolContext, execute_tool, tool_defs
 MAX_STEPS = 4
 MAX_TOOL_CALLS_PER_STEP = 4
 MAX_TOKENS = 700
+
+
+_MALFORMED_SEARCH_CALL = re.compile(
+    r"""^\s*\{.*["']name["']\s*:\s*["']search_knowledge["'].*["'](?:parameters|arguments)""",
+    re.IGNORECASE,
+)
+
+
+def _looks_like_malformed_search_call(text: str) -> bool:
+    """Recognize a textual pseudo-call without interpreting its arguments."""
+    return bool(_MALFORMED_SEARCH_CALL.match(text))
+
 
 SYSTEM_PROMPT = """You are the in-app assistant for a fictional quick-service restaurant.
 
@@ -178,8 +192,11 @@ class Agent:
                     self.memory.add(key, ic.text, hit["answer"])
                     return
 
-            ctx = ToolContext(self.reg, mode, user_id, store_id,
-                              [m.content for m in history if m.role == "user"])
+            ctx = ToolContext(
+                self.reg, mode, user_id, store_id,
+                [m.content for m in history if m.role == "user"],
+                original_query=ic.text,
+            )
             system = SYSTEM_PROMPT.format(
                 role=ROLE[mode],
                 summary=f"\nEarlier in this conversation: {summary}" if summary else "")
@@ -203,6 +220,14 @@ class Agent:
                 calls += 1
                 usage.add(resp.usage)
                 cost += estimate_cost(resp.model or client.model, resp.usage)
+
+                if not resp.tool_calls and _looks_like_malformed_search_call(resp.text):
+                    resp.text = ""
+                    resp.tool_calls = [
+                        ToolCall(f"recovered-search-{step}", "search_knowledge",
+                                 {"query": ic.text})
+                    ]
+
                 if not resp.tool_calls:
                     final_text = resp.text.strip()
                     break
@@ -234,23 +259,45 @@ class Agent:
                 final_text = OfflineClient._compose(tool_msgs, query=ic.text) if tool_msgs else NO_INFO
 
             # ---- 4. output guardrails
+            sources = [h for r in tools_log if r["name"] == "search_knowledge"
+                       for h in (r["data"] or {}).get("hits", [])]
             evidence = "\n".join(m.content for m in tool_msgs)
             with tr.span("guardrail.output") as sp:
                 oc = check_output(final_text, evidence, ic.text, mode, self._manager_shingles, system)
+
+                # Knowledge-based answers must cite documents actually retrieved.
+                valid_doc_ids = {
+                    str(hit["doc_id"]) for hit in sources
+                    if hit.get("doc_id")
+                }
+                citations = re.findall(r"\[([A-Za-z0-9_.:-]+)\]", final_text)
+
+                if sources and not citations and "missing_citation" not in oc.flags:
+                    oc.flags.append("missing_citation")
+                if any(doc_id not in valid_doc_ids for doc_id in citations):
+                    if "invalid_citation" not in oc.flags:
+                        oc.flags.append("invalid_citation")
+                if re.search(r"\(\s*doc_id\s*:", final_text, re.IGNORECASE):
+                    if "invalid_citation_format" not in oc.flags:
+                        oc.flags.append("invalid_citation_format")
+
                 guard["output"] = list(oc.flags)
                 sp["attrs"].update(flags=oc.flags, ungrounded=oc.ungrounded)
             answer = final_text
             if oc.flags and self.guard_strict:
                 if "system_prompt_leak" in oc.flags:
                     answer = BLOCK_MESSAGE
+                    guard["output"].append("answer_replaced")
                 elif blocked and "manager_leak" in oc.flags:
                     answer = REFUSAL
+                    guard["output"].append("answer_replaced")
                 else:
-                    answer = OfflineClient._compose(tool_msgs, query=ic.text) if tool_msgs else NO_INFO
-                guard["output"].append("answer_replaced")
+                    answer = (
+                        OfflineClient._compose(tool_msgs, query=ic.text)
+                        if tool_msgs else NO_INFO
+                    )
+                    guard["output"].append("answer_replaced")
 
-            sources = [h for r in tools_log if r["name"] == "search_knowledge"
-                       for h in (r["data"] or {}).get("hits", [])]
             resp_obj = finish(answer, sources, steps)
             self.memory.add(key, ic.text, answer)
             only_knowledge = bool(tools_log) and all(t["name"] == "search_knowledge" for t in tools_log)
@@ -263,12 +310,28 @@ class Agent:
     def _llm_step(self, client: BaseClient, system: str, messages: list[Message],
                   tools: list[dict], tr, step: int):
         resp = None
+        deferred_text = []
+        defer_json_text = False
         with tr.span("llm", step=step, backend=client.name, model=client.model) as sp:
             for kind, payload in client.stream(system, messages, tools, MAX_TOKENS):
                 if kind == "text":
-                    yield {"type": "token", "text": payload}
+                    if defer_json_text:
+                        deferred_text.append(payload)
+                    elif payload.lstrip().startswith("{"):
+                        # Avoid exposing a malformed pseudo-tool call before the
+                        # final response tells us whether it is one.
+                        defer_json_text = True
+                        deferred_text.append(payload)
+                    else:
+                        yield {"type": "token", "text": payload}
                 else:
                     resp = payload
+
+            if defer_json_text and resp is not None:
+                if not _looks_like_malformed_search_call(resp.text):
+                    for chunk in deferred_text:
+                        yield {"type": "token", "text": chunk}
+
             sp["attrs"].update(input_tokens=resp.usage.input_tokens,
                                output_tokens=resp.usage.output_tokens,
                                tool_calls=[tc.name for tc in resp.tool_calls])

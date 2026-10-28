@@ -94,3 +94,54 @@ def test_forecast_demand_honours_requested_horizon(registry, asked, expected):
     assert res.ok
     assert len(res.data["forecast"]) == expected
     assert f"next {expected} days" in res.summary
+
+
+def test_standalone_search_uses_original_question_not_bad_model_query(registry):
+    question = "At what amount in a register must money be moved to the safe?"
+    r = execute_tool(
+        "search_knowledge",
+        {"query": "refund policy", "doc_type": "policy"},
+        ToolContext(registry, "manager", original_query=question),
+    )
+    assert r.ok and not r.data["low_confidence"]
+    assert r.data["hits"][0]["doc_id"] == "sop-cash-handling"
+    assert len(r.data["hits"]) == 2
+    assert "more than 300 dollars" in r.data["hits"][0]["text"]
+
+
+def test_factual_search_returns_focused_evidence(registry):
+    question = "What do I pay for a plain beef sandwich?"
+    r = execute_tool(
+        "search_knowledge",
+        {"query": "veggie delight burger price"},
+        ToolContext(registry, "customer", original_query=question),
+    )
+    ids = [hit["doc_id"] for hit in r.data["hits"]]
+    assert ids[0] == "menu-classic-burger"
+    assert len(ids) == 2
+    assert "menu-veggie-delight-burger" not in ids
+
+
+def test_password_lockout_search_finds_faq_despite_bad_model_query(registry):
+    question = "How long am I locked out after typing the wrong password repeatedly?"
+    r = execute_tool(
+        "search_knowledge",
+        {"query": "refund policy", "doc_type": "policy"},
+        ToolContext(registry, "customer", original_query=question),
+    )
+    assert r.ok and not r.data["low_confidence"]
+    assert r.data["hits"][0]["doc_id"] == "faq-app-login"
+    assert "15 minutes" in r.data["hits"][0]["text"]
+
+
+def test_northgate_search_keeps_store_specific_evidence_focused(registry):
+    question = "Can I order from my car at the Northgate branch?"
+    r = execute_tool(
+        "search_knowledge",
+        {"query": "drive thru services Westbrook", "doc_type": "store"},
+        ToolContext(registry, "customer", original_query=question),
+    )
+    ids = [hit["doc_id"] for hit in r.data["hits"]]
+    assert "store-northgate" in ids
+    assert len(ids) == 2
+    assert "store-westbrook" not in ids and "store-hillcrest" not in ids

@@ -8,6 +8,7 @@ Security model (defence in depth):
 """
 from __future__ import annotations
 
+import re
 import time
 from dataclasses import dataclass, field
 from datetime import date, timedelta
@@ -33,6 +34,7 @@ class ToolContext:
     user_id: int | None = None
     store_id: int | None = None
     history: list[str] = field(default_factory=list)  # prior user turns (for query rewriting)
+    original_query: str | None = None  # current user question; do not trust model-only rewrites
 
 
 @dataclass
@@ -74,8 +76,29 @@ def _store(ctx: ToolContext, a: dict) -> int:
 # ------------------------------------------------------------------ tool implementations
 def search_knowledge(ctx: ToolContext, a: dict) -> ToolResult:
     ret = ctx.reg.retriever
-    dt = [a["doc_type"]] if a.get("doc_type") else None
-    hits = ret.search(a["query"], k=4, audience=ctx.mode, doc_types=dt, history=ctx.history)
+    query = str(a.get("query") or "").strip()
+    # For a new turn, search the user's actual question rather than a model-generated
+    # tool argument. This prevents a poor tool-call rewrite from silently changing intent.
+    # On follow-ups, retain the model's contextualized query because the latest turn may
+    # contain pronouns such as "and that one?".
+    if ctx.original_query and not ctx.history:
+        query = ctx.original_query.strip()
+        # A model-selected doc_type can also accidentally hide the relevant source.
+        # Let retrieval rank across permitted documents for a standalone question.
+        dt = None
+    else:
+        dt = [a["doc_type"]] if a.get("doc_type") else None
+
+    # Factual questions should expose only the strongest evidence chunks. Broad list
+    # requests need more results, but unrelated chunks increase citation and number errors.
+    broad_request = bool(re.search(
+        r"\b(list|show me|options|varieties|types|all available)\b|"
+        r"\bwhat\s+(?:are\s+)?(?:burgers?|drinks?|sides|desserts|menu items?)\b|"
+        r"\bwhich\b.*\b(available|burgers?|drinks?|sides|desserts|menu items?)\b",
+        query.lower(),
+    ))
+    hits = ret.search(query, k=4 if broad_request or ctx.history else 2,
+                      audience=ctx.mode, doc_types=dt, history=ctx.history)
     conf = max((h.confidence for h in hits), default=0.0)
     if not hits or conf < ABSTAIN_THRESHOLD:
         return ToolResult("search_knowledge",

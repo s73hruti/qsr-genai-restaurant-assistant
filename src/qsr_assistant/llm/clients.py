@@ -126,7 +126,7 @@ class OpenAIClient(BaseClient):
 
     def __init__(self, model: str | None = None, role: str = "LLM"):
         from openai import OpenAI
-        base = role_setting(role, "BASE_URL") or None
+        base = role_setting(role, "BASE_URL") or (env("OPENAI_BASE_URL") if role.upper() == "LLM" else "") or None
         key = role_setting(role, "API_KEY") or env("OPENAI_API_KEY") or ("not-needed" if base else None)
         self.client = OpenAI(base_url=base, api_key=key, timeout=TIMEOUT_S,
                              max_retries=int(role_setting(role, "MAX_RETRIES", "2") or 2))
@@ -190,18 +190,28 @@ class OpenAIClient(BaseClient):
         yield "final", LLMResponse("".join(text), calls, usage, finish, self.model)
 
 
-def get_llm(backend: str | None = None, role: str = "LLM") -> BaseClient:
-    """Build a client. role="JUDGE" reads JUDGE_BACKEND / JUDGE_MODEL / JUDGE_BASE_URL / JUDGE_API_KEY,
-    falling back to the LLM_* values, so the judge can be a different model or provider."""
+def get_llm(backend: str | None = None, role: str = "LLM", model: str | None = None) -> BaseClient:
+    """Build a client with role-specific settings and an optional model override."""
     backend = (backend or role_setting(role, "BACKEND", "auto")).lower()
     if backend == "auto":
-        backend = ("anthropic" if env("ANTHROPIC_API_KEY")
-                   else "openai" if (env("OPENAI_API_KEY") or role_setting(role, "BASE_URL")) else "offline")
+        backend = (
+            "anthropic" if env("ANTHROPIC_API_KEY")
+            else "openai" if (
+                role_setting(role, "API_KEY") or env("OPENAI_API_KEY")
+                or role_setting(role, "BASE_URL")
+                or (env("OPENAI_BASE_URL") if role.upper() == "LLM" else "")
+            )
+            else "offline"
+        )
     try:
         if backend == "anthropic":
-            return AnthropicClient(role=role)
+            if role.upper() == "LLM":
+                return AnthropicClient(model=model)
+            return AnthropicClient(model=model, role=role)
         if backend == "openai":
-            return OpenAIClient(role=role)
+            if role.upper() == "LLM":
+                return OpenAIClient(model=model)
+            return OpenAIClient(model=model, role=role)
     except ImportError:  # SDK not installed: degrade instead of crashing at start-up
         pass
     from .offline import OfflineClient

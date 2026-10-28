@@ -93,6 +93,58 @@ def test_grounded_llm_answer_passes_untouched(registry):
     assert r.guardrails["output"] == [] and r.answer.startswith("The Large Fries costs $3.40")
 
 
+def test_missing_document_citation_uses_grounded_fallback(registry, monkeypatch):
+    monkeypatch.setenv("OUTPUT_GUARD", "strict")
+    llm = ScriptedLLM([
+        call("search_knowledge", {"query": "large fries price"}),
+        text("The Large Fries costs $3.40."),
+    ])
+    r = Agent(registry, llm).run("How much are large fries?", "customer")
+
+    assert "missing_citation" in r.guardrails["output"]
+    assert "answer_replaced" in r.guardrails["output"]
+    assert "citation_repaired" not in r.guardrails["output"]
+    assert "$3.40" in r.answer
+    assert "[menu-large-fries]" in r.answer
+
+
+def test_invalid_document_citation_uses_grounded_fallback(registry, monkeypatch):
+    monkeypatch.setenv("OUTPUT_GUARD", "strict")
+    llm = ScriptedLLM([
+        call("search_knowledge", {"query": "large fries price"}),
+        text("The Large Fries costs $3.40 [made-up-doc]."),
+    ])
+    r = Agent(registry, llm).run("How much are large fries?", "customer")
+
+    assert "invalid_citation" in r.guardrails["output"]
+    assert "answer_replaced" in r.guardrails["output"]
+    assert "citation_repaired" not in r.guardrails["output"]
+    assert "$3.40" in r.answer
+    assert "[menu-large-fries]" in r.answer
+    assert "[made-up-doc]" not in r.answer
+
+
+def test_malformed_textual_search_call_uses_original_question(registry):
+    question = "Can I order from my car at the Northgate branch?"
+    llm = ScriptedLLM([
+        text('{"name":"search_knowledge","parameters{"doc_type":null,"query":"wrong query"}'),
+        text("Northgate does not offer drive-thru service [store-northgate]."),
+    ])
+
+    events = list(Agent(registry, llm).stream(question, "customer"))
+    r = next(event["response"] for event in events if event["type"] == "final")
+
+    assert any(t["name"] == "search_knowledge" and t["ok"] for t in r.tools)
+    assert r.tools[0]["arguments"]["query"] == question
+    assert "drive-thru" in r.answer.lower()
+    assert "[store-northgate]" in r.answer
+    assert not any(
+        event.get("type") == "token"
+        and '"name":"search_knowledge"' in event.get("text", "")
+        for event in events
+    )
+
+
 # ---------------------------------------------------------------- adversarial models
 def test_jailbroken_model_cannot_run_manager_tools_for_customers(registry):
     llm = ScriptedLLM([call("plan_inventory", {"store_id": 1}), text("Here is the inventory plan: 500 pcs")])
@@ -220,3 +272,29 @@ def test_trace_file_is_written(registry, tmp_path, monkeypatch):
 def test_offline_declines_clearly_unrelated_questions(registry):
     r = Agent(registry, OfflineClient()).run("quantum chromodynamics lecture notes", "customer")
     assert "don't have" in r.answer and r.sources == []
+
+
+def test_wrong_menu_price_is_replaced_with_answer_from_best_evidence(registry):
+    llm = ScriptedLLM([
+        call("search_knowledge", {"query": "veggie delight burger price", "doc_type": "menu"}),
+        text("A plain beef sandwich costs $4.80 [menu-veggie-delight-burger]."),
+    ])
+    r = Agent(registry, llm).run("What do I pay for a plain beef sandwich?", "customer")
+    assert "ungrounded_numbers" in r.guardrails["output"]
+    assert "answer_replaced" in r.guardrails["output"]
+    assert "$4.80" not in r.answer
+    assert "$4.50" in r.answer and "[menu-classic-burger]" in r.answer
+
+
+def test_cash_handling_guardrail_fallback_uses_relevant_source(registry):
+    llm = ScriptedLLM([
+        call("search_knowledge", {"query": "refund policy", "doc_type": "policy"}),
+        text("Move the money at $999.99 [policy-refund]."),
+    ])
+    r = Agent(registry, llm).run(
+        "At what amount in a register must money be moved to the safe?", "manager")
+    assert "ungrounded_numbers" in r.guardrails["output"]
+    assert "answer_replaced" in r.guardrails["output"]
+    assert "$999.99" not in r.answer
+    assert "more than 300 dollars" in r.answer
+    assert "[sop-cash-handling]" in r.answer

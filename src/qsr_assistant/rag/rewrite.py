@@ -31,7 +31,7 @@ THESAURUS = {
     "stocktake": "inventory count", "stock-take": "inventory count",
     "restaurant": "store", "branch": "store", "location": "store",
     "lane": "drive-thru", "car": "drive-thru curbside", "driver": "drive-thru",
-    "refund": "refund money", "money": "refund payment",
+    "refund": "refund money",
     "freezer": "refrigeration fault", "fridge": "refrigeration cold",
     "rodent": "pest", "mouse": "pest", "rats": "pest", "exterminator": "pest contractor",
     "toilets": "restrooms", "toilet": "restrooms", "bathrooms": "restrooms",
@@ -40,6 +40,7 @@ THESAURUS = {
     "hygiene": "food safety", "sick": "illness", "stomach": "illness diarrhoea vomiting",
     "warming": "holding", "bin": "holding", "cabinet": "holding",
     "cashed": "till", "register": "till", "registers": "tills", "float": "till cash",
+    "amount": "threshold limit", "safe": "safe drop",
     "marketing": "promotional", "notifications": "messages", "buck": "dollar",
 }
 FOLLOWUP_START = re.compile(r"^(and|what about|how about|also|then|what if|why|is it|does it|"

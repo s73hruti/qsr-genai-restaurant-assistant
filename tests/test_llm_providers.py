@@ -11,6 +11,7 @@ from qsr_assistant.llm.convert import (
     to_openai_tools,
 )
 from qsr_assistant.llm.offline import OfflineClient
+import qsr_assistant.llm.clients as llm_clients
 from qsr_assistant.llm.pricing import estimate_cost
 
 CONVO = [
@@ -105,3 +106,13 @@ def test_cost_estimate_and_override(monkeypatch):
     monkeypatch.setenv("LLM_PRICE_IN", "1")
     monkeypatch.setenv("LLM_PRICE_OUT", "2")
     assert estimate_cost("unknown-model", u) == 3.0
+
+
+def test_factory_passes_model_override(monkeypatch):
+    def fake_openai_client(model=None):
+        return NS(name="openai", model=model, online=True)
+
+    monkeypatch.setattr(llm_clients, "OpenAIClient", fake_openai_client)
+    client = get_llm("openai", model="qwen2.5:1.5b")
+
+    assert client.model == "qwen2.5:1.5b"
