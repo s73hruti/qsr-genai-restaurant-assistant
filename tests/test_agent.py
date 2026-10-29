@@ -101,9 +101,9 @@ def test_missing_document_citation_uses_grounded_fallback(registry, monkeypatch)
     ])
     r = Agent(registry, llm).run("How much are large fries?", "customer")
 
-    assert "missing_citation" in r.guardrails["output"]
-    assert "answer_replaced" in r.guardrails["output"]
-    assert "citation_repaired" not in r.guardrails["output"]
+    assert "citation_repaired" in r.guardrails["output"]
+    assert "missing_citation" not in r.guardrails["output"]
+    assert "answer_replaced" not in r.guardrails["output"]
     assert "$3.40" in r.answer
     assert "[menu-large-fries]" in r.answer
 

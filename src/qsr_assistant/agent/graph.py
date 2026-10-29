@@ -39,6 +39,7 @@ from .agent import (
 from .memory import SessionMemory
 from .router import REFUSAL
 from .tools import ToolContext, ToolResult, execute_tool, tool_defs
+from .citation_guard import repair_citation
 
 MAX_REVISIONS = 1
 
@@ -169,15 +170,21 @@ class GraphAgent:
         tool_msgs = [m for m in s["messages"] if m.role == "tool"]
         draft = s.get("draft") or (OfflineClient._compose(tool_msgs, query=s.get("query")) if tool_msgs else NO_INFO)
         evidence = "\n".join(m.content for m in tool_msgs)
-        oc = check_output(draft, evidence, s["query"], s["mode"], self._shingles, s["system"])
 
-        # Match the hand-rolled agent's document-citation validation.
+        # Match the hand-rolled agent's retrieved-source citation repair.
         sources = [
             hit
             for record in s.get("tools_log", [])
             if record["name"] == "search_knowledge"
             for hit in (record.get("data") or {}).get("hits", [])
         ]
+
+        repaired_draft, citation_repaired = repair_citation(draft, sources)
+        if citation_repaired:
+            draft = repaired_draft
+
+        # Always validate the final, possibly repaired draft.
+        oc = check_output(draft, evidence, s["query"], s["mode"], self._shingles, s["system"])
         valid_doc_ids = {
             str(hit["doc_id"]) for hit in sources if hit.get("doc_id")
         }
@@ -194,6 +201,8 @@ class GraphAgent:
 
         guard = dict(s["guard"])
         guard["output"] = list(oc.flags)
+        if citation_repaired:
+            guard["output"].append("citation_repaired")
         if (oc.flags and "system_prompt_leak" not in oc.flags
                 and s.get("revisions", 0) < MAX_REVISIONS and self.llm.online):
             fb = ("Reviewer: your draft was rejected (" + ", ".join(oc.flags) + "). Rewrite it "
@@ -208,10 +217,13 @@ class GraphAgent:
         draft, guard = s["draft"], dict(s["guard"])
         tool_msgs = [m for m in s["messages"] if m.role == "tool"]
         answer = draft
-        if guard["output"]:
-            if "system_prompt_leak" in guard["output"]:
+        blocking_flags = [
+            flag for flag in guard["output"] if flag != "citation_repaired"
+        ]
+        if blocking_flags:
+            if "system_prompt_leak" in blocking_flags:
                 answer = BLOCK_MESSAGE
-            elif s.get("blocked") and "manager_leak" in guard["output"]:
+            elif s.get("blocked") and "manager_leak" in blocking_flags:
                 answer = REFUSAL
             else:
                 answer = OfflineClient._compose(tool_msgs, query=s.get("query")) if tool_msgs else NO_INFO

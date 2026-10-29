@@ -30,6 +30,7 @@ from ..observability import Metrics, Tracer
 from .memory import SessionMemory
 from .router import REFUSAL
 from .tools import ToolContext, execute_tool, tool_defs
+from .citation_guard import repair_citation
 
 MAX_STEPS = 4
 MAX_TOOL_CALLS_PER_STEP = 4
@@ -263,6 +264,12 @@ class Agent:
                        for h in (r["data"] or {}).get("hits", [])]
             evidence = "\n".join(m.content for m in tool_msgs)
             with tr.span("guardrail.output") as sp:
+                # Repair only citations supported by retrieved source documents.
+                repaired_text, citation_repaired = repair_citation(final_text, sources)
+                if citation_repaired:
+                    final_text = repaired_text
+
+                # Always validate the final, possibly repaired answer.
                 oc = check_output(final_text, evidence, ic.text, mode, self._manager_shingles, system)
 
                 # Knowledge-based answers must cite documents actually retrieved.
@@ -282,7 +289,11 @@ class Agent:
                         oc.flags.append("invalid_citation_format")
 
                 guard["output"] = list(oc.flags)
-                sp["attrs"].update(flags=oc.flags, ungrounded=oc.ungrounded)
+                if citation_repaired:
+                    guard["output"].append("citation_repaired")
+                sp["attrs"].update(
+                    flags=guard["output"], ungrounded=oc.ungrounded
+                )
             answer = final_text
             if oc.flags and self.guard_strict:
                 if "system_prompt_leak" in oc.flags:

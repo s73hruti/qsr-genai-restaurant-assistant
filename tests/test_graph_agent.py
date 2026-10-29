@@ -48,8 +48,9 @@ def test_graph_flags_missing_citation(registry):
         text("The Large Fries costs $3.40."),
     ])
     res = GraphAgent(registry, llm).run("How much are large fries?")
-    assert "missing_citation" in res.guardrails["output"]
-    assert "answer_replaced" in res.guardrails["output"]
+    assert "citation_repaired" in res.guardrails["output"]
+    assert "missing_citation" not in res.guardrails["output"]
+    assert "answer_replaced" not in res.guardrails["output"]
     assert "[menu-large-fries]" in res.answer
 
 
@@ -74,8 +75,9 @@ def test_graph_flags_malformed_document_citation(registry):
         text("The Large Fries costs $3.40 (doc_id: menu-large-fries)."),
     ])
     res = GraphAgent(registry, llm).run("How much are large fries?")
-    assert "invalid_citation_format" in res.guardrails["output"]
-    assert "answer_replaced" in res.guardrails["output"]
+    assert "citation_repaired" in res.guardrails["output"]
+    assert "invalid_citation_format" not in res.guardrails["output"]
+    assert "answer_replaced" not in res.guardrails["output"]
     assert "(doc_id:" not in res.answer
     assert "[menu-large-fries]" in res.answer
 
