@@ -284,7 +284,7 @@ class Agent:
                 if any(doc_id not in valid_doc_ids for doc_id in citations):
                     if "invalid_citation" not in oc.flags:
                         oc.flags.append("invalid_citation")
-                if re.search(r"\(\s*doc_id\s*:", final_text, re.IGNORECASE):
+                if re.search(r"\bdoc[\s_-]*id\s*:", final_text, re.IGNORECASE):
                     if "invalid_citation_format" not in oc.flags:
                         oc.flags.append("invalid_citation_format")
 

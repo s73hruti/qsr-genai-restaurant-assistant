@@ -298,3 +298,18 @@ def test_cash_handling_guardrail_fallback_uses_relevant_source(registry):
     assert "$999.99" not in r.answer
     assert "more than 300 dollars" in r.answer
     assert "[sop-cash-handling]" in r.answer
+
+
+def test_dangling_citation_format_is_rejected_in_strict_mode(registry, monkeypatch):
+    monkeypatch.setenv("OUTPUT_GUARD", "strict")
+    llm = ScriptedLLM([
+        call("search_knowledge", {"query": "large fries price"}),
+        text("The Large Fries costs $3.40, doc id:."),
+    ])
+
+    res = Agent(registry, llm).run("How much are large fries?", "customer")
+
+    assert "invalid_citation_format" in res.guardrails["output"]
+    assert "answer_replaced" in res.guardrails["output"]
+    assert "doc id:" not in res.answer.lower()
+    assert "3.40" in res.answer

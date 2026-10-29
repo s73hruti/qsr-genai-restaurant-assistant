@@ -73,29 +73,63 @@ def _extract_text(value: Any, depth: int = 0) -> list[str]:
     return []
 
 
-def repair_citation(answer: str, sources: list[dict]) -> tuple[str, bool]:
-    """Return (answer, repaired); never invent a document ID.
+_DANGLING_CITATION = re.compile(
+    r"\bdoc[\s_-]*id\s*:\s*(?=$|[\s.,;!?)]|$)",
+    re.IGNORECASE,
+)
 
-    Existing square-bracket citations are left untouched. Invalid ones are
-    handled by the caller's normal validation and fallback path.
+
+def _answer_supported_by_source(answer: str, source: Mapping) -> bool:
+    """Require the complete answer to occur in one text field of this source."""
+    answer_norm = _normalize(answer.strip())
+    if not answer_norm:
+        return False
+
+    # Never join fields: that could manufacture evidence across field boundaries.
+    for part in _extract_text(source):
+        evidence_norm = _normalize(part)
+        if answer_norm in evidence_norm:
+            return True
+    return False
+
+
+def repair_citation(answer: str, sources: list[dict]) -> tuple[str, bool]:
+    """Repair citations only when the cited retrieved source supports the answer.
+
+    Repair is deliberately limited to exact textual excerpts from one source.
+    This helper does not establish semantic entailment for paraphrases.
     """
     if not answer.strip() or not sources:
         return answer, False
 
-    known_ids = {
-        str(source["doc_id"])
+    source_by_id = {
+        str(source["doc_id"]): source
         for source in sources
         if source.get("doc_id")
     }
-    if not known_ids:
+    if not source_by_id:
         return answer, False
 
-    # A malformed citation may be normalized only if its ID is known.
     malformed = list(_MALFORMED_CITATION.finditer(answer))
     if malformed:
+        # Do not alter a response containing a mixture of valid and malformed
+        # citations. Let the output validator handle it conservatively.
         if _VALID_CITATION.search(answer):
             return answer, False
-        if any(match.group(1) not in known_ids for match in malformed):
+
+        cited_ids = [match.group(1) for match in malformed]
+        if any(doc_id not in source_by_id for doc_id in cited_ids):
+            return answer, False
+
+        answer_body = _MALFORMED_CITATION.sub("", answer).strip()
+        if _DANGLING_CITATION.search(answer_body):
+            return answer, False
+
+        # Every named source must independently support the entire answer.
+        if not all(
+            _answer_supported_by_source(answer_body, source_by_id[doc_id])
+            for doc_id in cited_ids
+        ):
             return answer, False
 
         repaired = _MALFORMED_CITATION.sub(
@@ -103,35 +137,24 @@ def repair_citation(answer: str, sources: list[dict]) -> tuple[str, bool]:
         )
         return repaired, repaired != answer
 
-    # Do not rewrite or silently bless an existing citation.
+    # Existing square-bracket citations are never silently rewritten.
     if _VALID_CITATION.search(answer):
         return answer, False
 
-    # A missing citation is repairable only for one unambiguous source
-    # that contains the complete answer as an exact textual excerpt.
+    # A dangling or incomplete citation is not a missing-citation case.
+    if _DANGLING_CITATION.search(answer):
+        return answer, False
+
+    # Keep automatic repair to one sentence and one unambiguous source.
     if _SENTENCE_BREAK.search(answer.strip()):
         return answer, False
 
-    answer_norm = _normalize(answer.strip())
-    if not answer_norm:
+    matches = [
+        doc_id
+        for doc_id, source in source_by_id.items()
+        if _answer_supported_by_source(answer.strip(), source)
+    ]
+    if len(matches) != 1:
         return answer, False
 
-    matches: list[str] = []
-    for source in sources:
-        doc_id = str(source.get("doc_id", ""))
-        if not doc_id:
-            continue
-
-        evidence_parts = _extract_text(source)
-        evidence_norm = " ".join(
-            _normalize(part) for part in evidence_parts if part.strip()
-        )
-        if answer_norm and answer_norm in evidence_norm:
-            matches.append(doc_id)
-
-    unique_matches = set(matches)
-    if len(unique_matches) != 1:
-        return answer, False
-
-    doc_id = next(iter(unique_matches))
-    return f"{answer.rstrip()} [{doc_id}]", True
+    return f"{answer.rstrip()} [{matches[0]}]", True

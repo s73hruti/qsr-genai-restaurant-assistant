@@ -96,3 +96,19 @@ def test_critic_falls_back_to_tool_evidence_after_failed_revision(registry):
 def test_mermaid_export_lists_the_critic_loop(registry):
     m = GraphAgent(registry, OfflineClient()).mermaid()
     assert "critic" in m and "revise" in m
+
+
+def test_graph_rejects_dangling_citation_format(registry):
+    malformed = "The Large Fries costs $3.40, doc id:."
+    llm = ScriptedLLM([
+        call("search_knowledge", {"query": "large fries price"}),
+        text(malformed),
+        text(malformed),
+    ])
+
+    res = GraphAgent(registry, llm).run("How much are large fries?")
+
+    assert "invalid_citation_format" in res.guardrails["output"]
+    assert "answer_replaced" in res.guardrails["output"]
+    assert "doc id:" not in res.answer.lower()
+    assert "3.40" in res.answer
