@@ -19,6 +19,7 @@ explicit, inspectable graph edge. Install with: pip install -e ".[graph]"
 """
 from __future__ import annotations
 
+import re
 import time
 from typing import TypedDict
 
@@ -169,6 +170,28 @@ class GraphAgent:
         draft = s.get("draft") or (OfflineClient._compose(tool_msgs, query=s.get("query")) if tool_msgs else NO_INFO)
         evidence = "\n".join(m.content for m in tool_msgs)
         oc = check_output(draft, evidence, s["query"], s["mode"], self._shingles, s["system"])
+
+        # Match the hand-rolled agent's document-citation validation.
+        sources = [
+            hit
+            for record in s.get("tools_log", [])
+            if record["name"] == "search_knowledge"
+            for hit in (record.get("data") or {}).get("hits", [])
+        ]
+        valid_doc_ids = {
+            str(hit["doc_id"]) for hit in sources if hit.get("doc_id")
+        }
+        citations = re.findall(r"\[([A-Za-z0-9_.:-]+)\]", draft)
+
+        if sources and not citations and "missing_citation" not in oc.flags:
+            oc.flags.append("missing_citation")
+        if any(doc_id not in valid_doc_ids for doc_id in citations):
+            if "invalid_citation" not in oc.flags:
+                oc.flags.append("invalid_citation")
+        if re.search(r"\(\s*doc_id\s*:", draft, re.IGNORECASE):
+            if "invalid_citation_format" not in oc.flags:
+                oc.flags.append("invalid_citation_format")
+
         guard = dict(s["guard"])
         guard["output"] = list(oc.flags)
         if (oc.flags and "system_prompt_leak" not in oc.flags

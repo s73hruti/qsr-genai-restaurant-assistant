@@ -41,6 +41,45 @@ def test_critic_sends_ungrounded_draft_back_once_then_accepts_fix(registry):
     assert any("Reviewer" in m.content for m in llm.calls[-1]["messages"] if m.role == "user")
 
 
+def test_graph_flags_missing_citation(registry):
+    llm = ScriptedLLM([
+        call("search_knowledge", {"query": "large fries price"}),
+        text("The Large Fries costs $3.40."),
+        text("The Large Fries costs $3.40."),
+    ])
+    res = GraphAgent(registry, llm).run("How much are large fries?")
+    assert "missing_citation" in res.guardrails["output"]
+    assert "answer_replaced" in res.guardrails["output"]
+    assert "[menu-large-fries]" in res.answer
+
+
+def test_graph_flags_invalid_document_citation(registry):
+    llm = ScriptedLLM([
+        call("search_knowledge", {"query": "large fries price"}),
+        text("The Large Fries costs $3.40 [made-up-doc]."),
+        text("The Large Fries costs $3.40 [made-up-doc]."),
+    ])
+    res = GraphAgent(registry, llm).run("How much are large fries?")
+    assert "invalid_citation" in res.guardrails["output"]
+    assert "answer_replaced" in res.guardrails["output"]
+    assert "[made-up-doc]" not in res.answer
+    assert "[menu-large-fries]" in res.answer
+
+
+
+def test_graph_flags_malformed_document_citation(registry):
+    llm = ScriptedLLM([
+        call("search_knowledge", {"query": "large fries price"}),
+        text("The Large Fries costs $3.40 (doc_id: menu-large-fries)."),
+        text("The Large Fries costs $3.40 (doc_id: menu-large-fries)."),
+    ])
+    res = GraphAgent(registry, llm).run("How much are large fries?")
+    assert "invalid_citation_format" in res.guardrails["output"]
+    assert "answer_replaced" in res.guardrails["output"]
+    assert "(doc_id:" not in res.answer
+    assert "[menu-large-fries]" in res.answer
+
+
 def test_critic_falls_back_to_tool_evidence_after_failed_revision(registry):
     llm = ScriptedLLM([
         call("search_knowledge", {"query": "large fries price"}),
