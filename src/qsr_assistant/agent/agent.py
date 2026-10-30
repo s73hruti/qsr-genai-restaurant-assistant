@@ -23,15 +23,15 @@ from dataclasses import asdict, dataclass, field
 from ..config import env
 from ..guardrails import BLOCK_MESSAGE, check_input, check_output
 from ..llm import BaseClient, Message, Usage, get_llm
-from ..llm.types import ToolCall
 from ..llm.offline import NO_INFO, OfflineClient
 from ..llm.pricing import estimate_cost
+from ..llm.types import ToolCall
 from ..ml.registry import Registry, load_registry
 from ..observability import Metrics, Tracer
+from .citation_guard import repair_citation
 from .memory import SessionMemory
 from .router import REFUSAL
 from .tools import ToolContext, execute_tool, tool_defs
-from .citation_guard import repair_citation
 
 MAX_STEPS = 4
 MAX_TOOL_CALLS_PER_STEP = 4

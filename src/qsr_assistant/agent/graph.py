@@ -36,10 +36,10 @@ from .agent import (
     SYSTEM_PROMPT,
     AgentResponse,
 )
+from .citation_guard import repair_citation
 from .memory import SessionMemory
 from .router import REFUSAL
 from .tools import ToolContext, ToolResult, execute_tool, tool_defs
-from .citation_guard import repair_citation
 
 MAX_REVISIONS = 1
 

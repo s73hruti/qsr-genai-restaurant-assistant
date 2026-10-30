@@ -1,6 +1,7 @@
 import json
 from types import SimpleNamespace as NS
 
+import qsr_assistant.llm.clients as llm_clients
 from qsr_assistant.llm import AnthropicClient, Message, OpenAIClient, ToolCall, Usage, get_llm
 from qsr_assistant.llm.convert import (
     parse_anthropic,
@@ -11,7 +12,6 @@ from qsr_assistant.llm.convert import (
     to_openai_tools,
 )
 from qsr_assistant.llm.offline import OfflineClient
-import qsr_assistant.llm.clients as llm_clients
 from qsr_assistant.llm.pricing import estimate_cost
 
 CONVO = [
