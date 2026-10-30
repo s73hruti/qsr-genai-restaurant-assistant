@@ -100,11 +100,23 @@ class SentenceTransformerEmbedder:
     or intfloat/e5-small-v2). Query/passage prefixes are applied automatically for bge and e5."""
     name = "sentence-transformers"
 
-    def __init__(self, model: str | None = None, _model=None):
+    def __init__(
+        self,
+        model: str | None = None,
+        _model=None,
+        revision: str | None = None,
+        local_files_only: bool = False,
+    ):
         self.model_name = model or env("EMBEDDING_MODEL", "sentence-transformers/all-MiniLM-L6-v2")
+        self.revision = revision
+        self.local_files_only = local_files_only
         if _model is None:
             from sentence_transformers import SentenceTransformer
-            _model = SentenceTransformer(self.model_name)
+            _model = SentenceTransformer(
+                self.model_name,
+                revision=revision,
+                local_files_only=local_files_only,
+            )
         self.model = _model
         self.q_prefix, self.d_prefix = _prefixes_for(self.model_name)
 

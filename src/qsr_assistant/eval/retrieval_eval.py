@@ -12,40 +12,122 @@ from .metrics import bootstrap_ci, dedupe, hit_at_k, mrr_at_k, ndcg_at_k, norm, 
 DATA = Path(__file__).parent / "data"
 DEFAULT_CONFIG = "Hybrid (BM25 + TF-IDF) + rewrite + rerank"
 
+# Immutable Hugging Face commit revisions used for the reproducible neural ablation.
+NEURAL_MODEL_REVISIONS = {
+    "sentence-transformers/all-MiniLM-L6-v2": "1110a243fdf4706b3f48f1d95db1a4f5529b4d41",
+    "BAAI/bge-small-en-v1.5": "5c38ec7c405ec4b44b94cc5a9bb96e735b38267a",
+    "cross-encoder/ms-marco-MiniLM-L-6-v2": "233902d25c440f23af6f7d6e94d2946bac0bee0a",
+}
+
 
 def load_qa() -> list[dict]:
     return json.loads((DATA / "retrieval_qa.json").read_text())
 
 
-def build_variants(knowledge_dir: Path = KNOWLEDGE_DIR) -> dict[str, HybridRetriever]:
-    """One retriever per embedding/chunking variant. Neural variants are added when available."""
+def build_variants(
+    knowledge_dir: Path = KNOWLEDGE_DIR,
+    strict_neural: bool = False,
+    local_files_only: bool = False,
+) -> dict[str, HybridRetriever]:
+    """Build classical variants and optional neural variants.
+
+    In strict mode every pinned neural configuration must load successfully; failures
+    are raised rather than silently reducing the benchmark's configuration set.
+    """
     v = {
         "lsa": HybridRetriever(knowledge_dir, embedder=get_embedder("lsa"), llm=None),
         "tfidf": HybridRetriever(knowledge_dir, embedder=get_embedder("tfidf"), llm=None),
-        "tfidf-section": HybridRetriever(knowledge_dir, embedder=get_embedder("tfidf"), llm=None,
-                                         chunk_strategy="section"),
+        "tfidf-section": HybridRetriever(
+            knowledge_dir, embedder=get_embedder("tfidf"), llm=None,
+            chunk_strategy="section",
+        ),
     }
-    # Optional neural variants. They need `pip install ".[vector]"` and a model download, so they
-    # are skipped silently when unavailable and appear in the report only when they actually ran.
+
     try:
         from ..rag.embeddings import SentenceTransformerEmbedder
-        minilm = SentenceTransformerEmbedder("sentence-transformers/all-MiniLM-L6-v2")
-        v["minilm"] = HybridRetriever(knowledge_dir, embedder=minilm, llm=None)
+    except Exception as exc:
+        if strict_neural:
+            raise RuntimeError(
+                f"Strict neural evaluation requires sentence-transformers: {exc}"
+            ) from exc
+        return v
+
+    def load_neural_variant(name, operation):
         try:
-            v["minilm-ce"] = HybridRetriever(knowledge_dir, embedder=minilm, llm=None,
-                                             reranker="cross-encoder")
-        except Exception:
-            pass
-        try:
-            bge = SentenceTransformerEmbedder("BAAI/bge-small-en-v1.5")
-            v["bge"] = HybridRetriever(knowledge_dir, embedder=bge, llm=None)
-            if "minilm-ce" in v:
-                v["bge-ce"] = HybridRetriever(knowledge_dir, embedder=bge, llm=None,
-                                              reranker="cross-encoder")
-        except Exception:
-            pass
-    except Exception:
-        pass
+            v[name] = operation()
+        except Exception as exc:
+            if strict_neural:
+                raise RuntimeError(
+                    f"Required neural retrieval variant {name!r} failed to load: {exc}"
+                ) from exc
+
+    minilm_id = "sentence-transformers/all-MiniLM-L6-v2"
+    bge_id = "BAAI/bge-small-en-v1.5"
+    cross_encoder_id = "cross-encoder/ms-marco-MiniLM-L-6-v2"
+    cross_encoder_revision = NEURAL_MODEL_REVISIONS[cross_encoder_id]
+
+    minilm = None
+    try:
+        minilm = SentenceTransformerEmbedder(
+            minilm_id,
+            revision=NEURAL_MODEL_REVISIONS[minilm_id],
+            local_files_only=local_files_only,
+        )
+    except Exception as exc:
+        if strict_neural:
+            raise RuntimeError(f"Required MiniLM embedding model failed to load: {exc}") from exc
+
+    if minilm is not None:
+        load_neural_variant(
+            "minilm",
+            lambda: HybridRetriever(knowledge_dir, embedder=minilm, llm=None),
+        )
+        load_neural_variant(
+            "minilm-ce",
+            lambda: HybridRetriever(
+                knowledge_dir,
+                embedder=minilm,
+                llm=None,
+                reranker="cross-encoder",
+                reranker_revision=cross_encoder_revision,
+                reranker_local_files_only=local_files_only,
+            ),
+        )
+
+    bge = None
+    try:
+        bge = SentenceTransformerEmbedder(
+            bge_id,
+            revision=NEURAL_MODEL_REVISIONS[bge_id],
+            local_files_only=local_files_only,
+        )
+    except Exception as exc:
+        if strict_neural:
+            raise RuntimeError(f"Required BGE embedding model failed to load: {exc}") from exc
+
+    if bge is not None:
+        load_neural_variant(
+            "bge",
+            lambda: HybridRetriever(knowledge_dir, embedder=bge, llm=None),
+        )
+        load_neural_variant(
+            "bge-ce",
+            lambda: HybridRetriever(
+                knowledge_dir,
+                embedder=bge,
+                llm=None,
+                reranker="cross-encoder",
+                reranker_revision=cross_encoder_revision,
+                reranker_local_files_only=local_files_only,
+            ),
+        )
+
+    if strict_neural:
+        required = {"minilm", "minilm-ce", "bge", "bge-ce"}
+        missing = sorted(required - set(v))
+        if missing:
+            raise RuntimeError(f"Strict neural benchmark is incomplete; missing variants: {missing}")
+
     return v
 
 
@@ -134,9 +216,18 @@ def run_multihop(variants: dict, k: int = 4) -> list[dict]:
     return out
 
 
-def run_ablation(knowledge_dir: Path = KNOWLEDGE_DIR, qa: list[dict] | None = None) -> dict:
+def run_ablation(
+    knowledge_dir: Path = KNOWLEDGE_DIR,
+    qa: list[dict] | None = None,
+    strict_neural: bool = False,
+    local_files_only: bool = False,
+) -> dict:
     qa = qa or load_qa()
-    variants = build_variants(knowledge_dir)
+    variants = build_variants(
+        knowledge_dir,
+        strict_neural=strict_neural,
+        local_files_only=local_files_only,
+    )
     rows, default_fails = [], []
     for name, variant, kw in configs(variants):
         row, fails = evaluate_config(variants[variant], qa, **kw)

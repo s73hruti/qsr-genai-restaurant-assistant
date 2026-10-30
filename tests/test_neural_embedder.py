@@ -1,7 +1,11 @@
 """The sentence-transformers wrapper is tested with a fake model (no downloads)."""
+import sys
+from types import SimpleNamespace
+
 import numpy as np
 
 from qsr_assistant.rag.embeddings import SentenceTransformerEmbedder, _prefixes_for
+from qsr_assistant.rag.reranker import CrossEncoderReranker
 from qsr_assistant.rag.retriever import HybridRetriever
 
 
@@ -39,3 +43,57 @@ def test_retriever_uses_query_side_encoder():
     m.seen.clear()
     r.search("large fries price", k=2)
     assert m.seen == ["query: large fries price"]
+
+
+def test_sentence_transformer_revision_and_offline_options(monkeypatch):
+    captured = {}
+
+    class FakeSentenceTransformer:
+        def __init__(self, model_name, **kwargs):
+            captured["model_name"] = model_name
+            captured.update(kwargs)
+
+    monkeypatch.setitem(
+        sys.modules,
+        "sentence_transformers",
+        SimpleNamespace(SentenceTransformer=FakeSentenceTransformer),
+    )
+
+    SentenceTransformerEmbedder(
+        "example/model",
+        revision="abc123",
+        local_files_only=True,
+    )
+
+    assert captured == {
+        "model_name": "example/model",
+        "revision": "abc123",
+        "local_files_only": True,
+    }
+
+
+def test_cross_encoder_revision_and_offline_options(monkeypatch):
+    captured = {}
+
+    class FakeCrossEncoder:
+        def __init__(self, model_name, **kwargs):
+            captured["model_name"] = model_name
+            captured.update(kwargs)
+
+    monkeypatch.setitem(
+        sys.modules,
+        "sentence_transformers",
+        SimpleNamespace(CrossEncoder=FakeCrossEncoder),
+    )
+
+    CrossEncoderReranker(
+        "example/cross-encoder",
+        revision="def456",
+        local_files_only=True,
+    )
+
+    assert captured == {
+        "model_name": "example/cross-encoder",
+        "revision": "def456",
+        "local_files_only": True,
+    }

@@ -41,10 +41,24 @@ class LexicalReranker:
 class CrossEncoderReranker:
     name = "cross-encoder"
 
-    def __init__(self, model: str | None = None):
+    def __init__(
+        self,
+        model: str | None = None,
+        revision: str | None = None,
+        local_files_only: bool = False,
+    ):
         from sentence_transformers import CrossEncoder
-        self.model = CrossEncoder(model or env("CROSS_ENCODER_MODEL",
-                                               "cross-encoder/ms-marco-MiniLM-L-6-v2"))
+        self.model_name = model or env(
+            "CROSS_ENCODER_MODEL",
+            "cross-encoder/ms-marco-MiniLM-L-6-v2",
+        )
+        self.revision = revision
+        self.local_files_only = local_files_only
+        self.model = CrossEncoder(
+            self.model_name,
+            revision=revision,
+            local_files_only=local_files_only,
+        )
 
     def rerank(self, query: str, chunks: list, top_k: int) -> list[tuple[int, float]]:
         scores = self.model.predict([(query, c.text) for c in chunks])
@@ -52,10 +66,18 @@ class CrossEncoderReranker:
         return [(i, float(scores[i])) for i in order]
 
 
-def get_reranker(idf_fn, backend: str | None = None):
+def get_reranker(
+    idf_fn,
+    backend: str | None = None,
+    revision: str | None = None,
+    local_files_only: bool = False,
+):
     backend = (backend or env("RERANKER", "lexical")).lower()
     if backend == "cross-encoder":
-        return CrossEncoderReranker()
+        return CrossEncoderReranker(
+            revision=revision,
+            local_files_only=local_files_only,
+        )
     if backend == "none":
         return None
     return LexicalReranker(idf_fn)

@@ -49,7 +49,9 @@ class HybridRetriever:
                  mode: str | None = None, rerank: bool | None = None,
                  rewrite: bool | None = None, chunk_strategy: str | None = None,
                  documents: list | None = None, reranker: str | None = None,
-                 graph: bool | None = None, vector_store: str | None = None):
+                 graph: bool | None = None, vector_store: str | None = None,
+                 reranker_revision: str | None = None,
+                 reranker_local_files_only: bool = False):
         # `documents` lets callers index any corpus (e.g. a BEIR dataset) instead of a folder
         docs = documents if documents is not None else load_documents(knowledge_dir)
         self.chunk_strategy = chunk_strategy or env("CHUNK_STRATEGY", "merged")
@@ -66,7 +68,12 @@ class HybridRetriever:
         self.store.add(vectors)
         self.bm25 = BM25().fit(texts)
         self._idf_max = float(self.bm25.idf.max())
-        self.reranker = get_reranker(self.bm25.idf_of, reranker)
+        self.reranker = get_reranker(
+            self.bm25.idf_of,
+            reranker,
+            revision=reranker_revision,
+            local_files_only=reranker_local_files_only,
+        )
         self.rewriter = QueryRewriter(llm)
         self.mode = mode or env("RETRIEVAL_MODE", "hybrid")
         self.use_rerank = rerank if rerank is not None else env("RERANK", "1") == "1"

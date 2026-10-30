@@ -1,0 +1,675 @@
+{
+  "metadata": {
+    "generated_at_utc": "2026-10-30T08:04:43.274726+00:00",
+    "git_commit": "2eeb8b45c1fc96c35f41c55e9cb9bd5853efe3d9",
+    "git_worktree_dirty": true,
+    "python": "3.14.3 (v3.14.3:323c59a5e34, Feb  3 2026, 11:41:37) [Clang 16.0.0 (clang-1600.0.26.6)]",
+    "platform": "macOS-26.0-arm64-arm-64bit-Mach-O",
+    "packages": {
+      "sentence-transformers": "6.2.0",
+      "transformers": "5.21.0",
+      "torch": "2.14.1",
+      "scikit-learn": "1.9.1",
+      "faiss-cpu": "1.15.1",
+      "numpy": "2.5.4"
+    },
+    "datasets": {
+      "retrieval": {
+        "path": "/Users/swaritshrivastava/Downloads/qsr-genai-assistant 2/src/qsr_assistant/eval/data/retrieval_qa.json",
+        "sha256": "863f997793cfa32f176bd64f1a17e227b01657891aae7d7e2b2f897ccf4c229e",
+        "questions": 181,
+        "distinct_questions": 181,
+        "distinct_gold_documents": 113,
+        "question_types": {
+          "faq": 31,
+          "guide": 6,
+          "menu": 42,
+          "policy": 7,
+          "promo": 6,
+          "sop": 44,
+          "store": 35,
+          "training": 10
+        }
+      },
+      "multihop": {
+        "path": "/Users/swaritshrivastava/Downloads/qsr-genai-assistant 2/src/qsr_assistant/eval/data/multihop_qa.json",
+        "sha256": "6aa74c0f63e4672384f69916c3bce63d1b852b536d9d1c470c593a055a1954ba",
+        "questions": 20
+      }
+    },
+    "source_sha256": {
+      "src/qsr_assistant/eval/retrieval_eval.py": "b7497b3a6920333c20667c811744e8da30439fcbbf53e9a74657164a6620108b",
+      "src/qsr_assistant/rag/embeddings.py": "a155f4f4c6466dc28ea27722bb3191b7a66910f54238d24a9eff4624c236e49c",
+      "src/qsr_assistant/rag/retriever.py": "0b1a26097bfc6009b42cf838dd7ff37683c0603559c869bfda56a1317f92c2a7",
+      "src/qsr_assistant/rag/reranker.py": "68122cba75149812d2d2c05d6ddb15d5694547655b2b712e7052084989e82279"
+    },
+    "model_revisions": {
+      "sentence-transformers/all-MiniLM-L6-v2": "1110a243fdf4706b3f48f1d95db1a4f5529b4d41",
+      "BAAI/bge-small-en-v1.5": "5c38ec7c405ec4b44b94cc5a9bb96e735b38267a",
+      "cross-encoder/ms-marco-MiniLM-L-6-v2": "233902d25c440f23af6f7d6e94d2946bac0bee0a"
+    },
+    "execution": {
+      "strict_neural": true,
+      "local_files_only": true,
+      "expected_configurations": 19,
+      "executed_configurations": 19,
+      "retrieval_questions": 181
+    },
+    "methodology": {
+      "primary_metrics": [
+        "Hit@1",
+        "Hit@3",
+        "Hit@5",
+        "MRR@5",
+        "nDCG@5",
+        "fact_recall@3"
+      ],
+      "gold_document": "One expected document ID per retrieval question.",
+      "fact_recall": "Normalized substring presence of the expected fact in at least one of the top-three retrieved chunks; not an entailment metric.",
+      "confidence_intervals": "Question-level bootstrap, 1000 samples, seed 0. Questions may cluster within documents, so intervals are descriptive and may understate uncertainty.",
+      "limitations": [
+        "The evaluation set is self-authored, not an independent benchmark.",
+        "Question-level results do not establish production generalization.",
+        "No paired statistical significance test is performed.",
+        "The separate multihop set is a small diagnostic, not a definitive benchmark."
+      ]
+    }
+  },
+  "results": {
+    "rows": [
+      {
+        "config": "BM25",
+        "hit@1": 57.5,
+        "hit@3": 79.0,
+        "hit@5": 81.2,
+        "mrr@5": 0.678,
+        "ndcg@5": 0.712,
+        "fact_recall@3": 79.6,
+        "hit@3_ci95": [
+          72.9,
+          84.5
+        ],
+        "mrr@5_ci95": [
+          0.618,
+          0.737
+        ],
+        "n": 181
+      },
+      {
+        "config": "Dense: TF-IDF cosine",
+        "hit@1": 55.2,
+        "hit@3": 77.3,
+        "hit@5": 81.2,
+        "mrr@5": 0.661,
+        "ndcg@5": 0.699,
+        "fact_recall@3": 78.5,
+        "hit@3_ci95": [
+          71.3,
+          82.9
+        ],
+        "mrr@5_ci95": [
+          0.603,
+          0.719
+        ],
+        "n": 181
+      },
+      {
+        "config": "Dense: LSA (SVD)",
+        "hit@1": 35.9,
+        "hit@3": 60.8,
+        "hit@5": 70.7,
+        "mrr@5": 0.488,
+        "ndcg@5": 0.542,
+        "fact_recall@3": 63.5,
+        "hit@3_ci95": [
+          53.0,
+          67.4
+        ],
+        "mrr@5_ci95": [
+          0.424,
+          0.547
+        ],
+        "n": 181
+      },
+      {
+        "config": "Hybrid: BM25 + LSA (RRF)",
+        "hit@1": 47.0,
+        "hit@3": 68.5,
+        "hit@5": 72.9,
+        "mrr@5": 0.577,
+        "ndcg@5": 0.616,
+        "fact_recall@3": 69.1,
+        "hit@3_ci95": [
+          61.3,
+          75.7
+        ],
+        "mrr@5_ci95": [
+          0.512,
+          0.638
+        ],
+        "n": 181
+      },
+      {
+        "config": "Hybrid: BM25 + TF-IDF (RRF)",
+        "hit@1": 55.8,
+        "hit@3": 78.5,
+        "hit@5": 81.2,
+        "mrr@5": 0.668,
+        "ndcg@5": 0.705,
+        "fact_recall@3": 79.6,
+        "hit@3_ci95": [
+          72.4,
+          84.0
+        ],
+        "mrr@5_ci95": [
+          0.61,
+          0.726
+        ],
+        "n": 181
+      },
+      {
+        "config": "BM25 + rewrite",
+        "hit@1": 62.4,
+        "hit@3": 86.2,
+        "hit@5": 90.6,
+        "mrr@5": 0.748,
+        "ndcg@5": 0.788,
+        "fact_recall@3": 86.2,
+        "hit@3_ci95": [
+          81.2,
+          90.6
+        ],
+        "mrr@5_ci95": [
+          0.694,
+          0.799
+        ],
+        "n": 181
+      },
+      {
+        "config": "BM25 + rewrite + rerank",
+        "hit@1": 63.0,
+        "hit@3": 86.2,
+        "hit@5": 90.6,
+        "mrr@5": 0.754,
+        "ndcg@5": 0.793,
+        "fact_recall@3": 86.2,
+        "hit@3_ci95": [
+          81.2,
+          90.6
+        ],
+        "mrr@5_ci95": [
+          0.699,
+          0.801
+        ],
+        "n": 181
+      },
+      {
+        "config": "Hybrid (BM25 + TF-IDF) + rewrite",
+        "hit@1": 61.9,
+        "hit@3": 86.2,
+        "hit@5": 90.6,
+        "mrr@5": 0.744,
+        "ndcg@5": 0.786,
+        "fact_recall@3": 86.7,
+        "hit@3_ci95": [
+          80.7,
+          90.6
+        ],
+        "mrr@5_ci95": [
+          0.689,
+          0.794
+        ],
+        "n": 181
+      },
+      {
+        "config": "Hybrid (BM25 + TF-IDF) + rewrite + rerank",
+        "hit@1": 61.9,
+        "hit@3": 86.2,
+        "hit@5": 90.6,
+        "mrr@5": 0.746,
+        "ndcg@5": 0.787,
+        "fact_recall@3": 86.2,
+        "hit@3_ci95": [
+          81.2,
+          90.6
+        ],
+        "mrr@5_ci95": [
+          0.692,
+          0.795
+        ],
+        "n": 181
+      },
+      {
+        "config": "Hybrid (BM25 + LSA) + rewrite + rerank",
+        "hit@1": 61.9,
+        "hit@3": 85.6,
+        "hit@5": 89.0,
+        "mrr@5": 0.729,
+        "ndcg@5": 0.769,
+        "fact_recall@3": 85.6,
+        "hit@3_ci95": [
+          80.7,
+          90.1
+        ],
+        "mrr@5_ci95": [
+          0.672,
+          0.779
+        ],
+        "n": 181
+      },
+      {
+        "config": "Hybrid (BM25 + TF-IDF) + rewrite + rerank, section chunks",
+        "hit@1": 60.2,
+        "hit@3": 84.5,
+        "hit@5": 89.0,
+        "mrr@5": 0.715,
+        "ndcg@5": 0.759,
+        "fact_recall@3": 79.6,
+        "hit@3_ci95": [
+          79.0,
+          89.5
+        ],
+        "mrr@5_ci95": [
+          0.658,
+          0.766
+        ],
+        "n": 181
+      },
+      {
+        "config": "Default + graph-neighbour slot (GraphRAG-lite)",
+        "hit@1": 61.9,
+        "hit@3": 86.2,
+        "hit@5": 90.1,
+        "mrr@5": 0.745,
+        "ndcg@5": 0.784,
+        "fact_recall@3": 86.2,
+        "hit@3_ci95": [
+          81.2,
+          90.6
+        ],
+        "mrr@5_ci95": [
+          0.691,
+          0.793
+        ],
+        "n": 181
+      },
+      {
+        "config": "Dense: MiniLM",
+        "hit@1": 80.1,
+        "hit@3": 91.2,
+        "hit@5": 96.7,
+        "mrr@5": 0.862,
+        "ndcg@5": 0.888,
+        "fact_recall@3": 92.8,
+        "hit@3_ci95": [
+          86.7,
+          95.0
+        ],
+        "mrr@5_ci95": [
+          0.818,
+          0.902
+        ],
+        "n": 181
+      },
+      {
+        "config": "Hybrid: BM25 + MiniLM + rewrite",
+        "hit@1": 74.0,
+        "hit@3": 93.4,
+        "hit@5": 95.6,
+        "mrr@5": 0.84,
+        "ndcg@5": 0.869,
+        "fact_recall@3": 93.9,
+        "hit@3_ci95": [
+          90.1,
+          96.7
+        ],
+        "mrr@5_ci95": [
+          0.799,
+          0.877
+        ],
+        "n": 181
+      },
+      {
+        "config": "Hybrid: BM25 + MiniLM + rewrite + lexical rerank",
+        "hit@1": 69.1,
+        "hit@3": 91.7,
+        "hit@5": 94.5,
+        "mrr@5": 0.804,
+        "ndcg@5": 0.84,
+        "fact_recall@3": 92.3,
+        "hit@3_ci95": [
+          87.3,
+          95.6
+        ],
+        "mrr@5_ci95": [
+          0.756,
+          0.844
+        ],
+        "n": 181
+      },
+      {
+        "config": "Hybrid: BM25 + MiniLM + rewrite + cross-encoder",
+        "hit@1": 86.7,
+        "hit@3": 96.1,
+        "hit@5": 98.3,
+        "mrr@5": 0.917,
+        "ndcg@5": 0.934,
+        "fact_recall@3": 96.7,
+        "hit@3_ci95": [
+          92.8,
+          98.3
+        ],
+        "mrr@5_ci95": [
+          0.884,
+          0.947
+        ],
+        "n": 181
+      },
+      {
+        "config": "Dense: bge-small",
+        "hit@1": 84.5,
+        "hit@3": 93.9,
+        "hit@5": 97.2,
+        "mrr@5": 0.894,
+        "ndcg@5": 0.914,
+        "fact_recall@3": 95.0,
+        "hit@3_ci95": [
+          90.1,
+          97.2
+        ],
+        "mrr@5_ci95": [
+          0.856,
+          0.93
+        ],
+        "n": 181
+      },
+      {
+        "config": "Hybrid: BM25 + bge-small + rewrite",
+        "hit@1": 70.7,
+        "hit@3": 95.0,
+        "hit@5": 95.6,
+        "mrr@5": 0.826,
+        "ndcg@5": 0.859,
+        "fact_recall@3": 95.6,
+        "hit@3_ci95": [
+          91.7,
+          97.8
+        ],
+        "mrr@5_ci95": [
+          0.783,
+          0.865
+        ],
+        "n": 181
+      },
+      {
+        "config": "Hybrid: BM25 + bge-small + rewrite + cross-encoder",
+        "hit@1": 87.8,
+        "hit@3": 97.2,
+        "hit@5": 97.8,
+        "mrr@5": 0.923,
+        "ndcg@5": 0.937,
+        "fact_recall@3": 97.2,
+        "hit@3_ci95": [
+          94.5,
+          99.4
+        ],
+        "mrr@5_ci95": [
+          0.889,
+          0.953
+        ],
+        "n": 181
+      }
+    ],
+    "multihop": [
+      {
+        "config": "Default (hybrid + rewrite + rerank)",
+        "both_docs@4": 80.0,
+        "doc_recall@4": 85.0,
+        "both_docs_ci95": [
+          60.0,
+          95.0
+        ],
+        "n": 20
+      },
+      {
+        "config": "Default + graph-neighbour slot",
+        "both_docs@4": 80.0,
+        "doc_recall@4": 82.5,
+        "both_docs_ci95": [
+          60.0,
+          95.0
+        ],
+        "n": 20
+      }
+    ],
+    "by_type_hit@3": {
+      "faq": 77.4,
+      "guide": 100.0,
+      "menu": 95.2,
+      "policy": 71.4,
+      "promo": 100.0,
+      "sop": 70.5,
+      "store": 100.0,
+      "training": 90.0
+    },
+    "n_docs": 113,
+    "n_chunks": 113,
+    "n_questions": 181,
+    "default_failures": [
+      {
+        "q": "What is the energy content of a breaded seafood sandwich?",
+        "gold": "menu-crispy-fish-burger",
+        "got": [
+          "menu-veggie-delight-burger",
+          "menu-classic-burger",
+          "menu-double-cheese-burger"
+        ]
+      },
+      {
+        "q": "Which allergens should I know about in the breaded seafood sandwich?",
+        "gold": "menu-crispy-fish-burger",
+        "got": [
+          "menu-veggie-delight-burger",
+          "menu-classic-burger",
+          "menu-double-cheese-burger"
+        ]
+      },
+      {
+        "q": "Until what time can I get food brought to my home?",
+        "gold": "faq-delivery",
+        "got": [
+          "policy-food-safety",
+          "faq-order-tracking",
+          "policy-offer-terms"
+        ]
+      },
+      {
+        "q": "I forgot my umbrella at a restaurant, how long will they keep it?",
+        "gold": "faq-lost-items",
+        "got": [
+          "faq-app-login",
+          "store-westbrook",
+          "store-oakridge"
+        ]
+      },
+      {
+        "q": "The application keeps freezing, what should I try first?",
+        "gold": "faq-app-problems",
+        "got": []
+      },
+      {
+        "q": "How long does it take to wipe my personal information after I ask?",
+        "gold": "faq-delete-account",
+        "got": [
+          "policy-privacy",
+          "faq-nutrition",
+          "faq-kids"
+        ]
+      },
+      {
+        "q": "Do you provide menus with bigger lettering?",
+        "gold": "faq-accessibility",
+        "got": [
+          "faq-kids",
+          "faq-allergens-general",
+          "faq-nutrition"
+        ]
+      },
+      {
+        "q": "Can I use two discounts on the same purchase?",
+        "gold": "faq-offer-stacking",
+        "got": [
+          "faq-student-discount",
+          "policy-acceptable-use",
+          "faq-gift-cards"
+        ]
+      },
+      {
+        "q": "Where can I see calorie counts for each product?",
+        "gold": "faq-nutrition",
+        "got": [
+          "guide-vegetarian",
+          "menu-medium-fries",
+          "menu-large-fries"
+        ]
+      },
+      {
+        "q": "Do you share my details with advertisers for money?",
+        "gold": "policy-privacy",
+        "got": [
+          "faq-allergens-general",
+          "policy-acceptable-use",
+          "faq-feedback"
+        ]
+      },
+      {
+        "q": "Within how long must I complain about a cold meal to get money back?",
+        "gold": "policy-refund",
+        "got": [
+          "guide-cold-items",
+          "menu-iced-coffee",
+          "policy-food-safety"
+        ]
+      },
+      {
+        "q": "On which weekdays does the frozen stock truck arrive?",
+        "gold": "sop-ingredient-ordering",
+        "got": [
+          "train-forecast-tool",
+          "promo-morning",
+          "faq-refunds"
+        ]
+      },
+      {
+        "q": "How many team members must be working during rush hours at minimum?",
+        "gold": "sop-peak-staffing",
+        "got": [
+          "faq-curbside",
+          "sop-lone-working",
+          "sop-loyalty-fraud"
+        ]
+      },
+      {
+        "q": "When do I tell head office the demand predictions are too high?",
+        "gold": "sop-waste-logging",
+        "got": [
+          "train-forecast-tool",
+          "sop-inventory-count",
+          "store-eastwood"
+        ]
+      },
+      {
+        "q": "What is the most a crew member may give back without asking?",
+        "gold": "sop-refund-approvals",
+        "got": [
+          "faq-curbside",
+          "sop-peak-staffing",
+          "sop-loyalty-fraud"
+        ]
+      },
+      {
+        "q": "How early must the person opening the restaurant turn up?",
+        "gold": "sop-opening-checklist",
+        "got": [
+          "store-westbrook",
+          "store-hillcrest",
+          "store-northgate"
+        ]
+      },
+      {
+        "q": "How much starting cash goes in every register?",
+        "gold": "sop-opening-checklist",
+        "got": [
+          "sop-cash-handling",
+          "sop-closing-checklist",
+          "faq-gift-cards"
+        ]
+      },
+      {
+        "q": "What do we do if a guest has trouble breathing after eating?",
+        "gold": "sop-allergen-incident",
+        "got": []
+      },
+      {
+        "q": "How long do we have to flag shortages to the vendor?",
+        "gold": "sop-delivery-receiving",
+        "got": [
+          "sop-supplier-issues",
+          "sop-ingredient-ordering",
+          "sop-loyalty-fraud"
+        ]
+      },
+      {
+        "q": "How frequently should the cooking oil be replaced completely?",
+        "gold": "sop-cleaning-schedule",
+        "got": [
+          "train-fryer",
+          "faq-allergens-general",
+          "sop-closing-checklist"
+        ]
+      },
+      {
+        "q": "What stock difference triggers an investigation?",
+        "gold": "sop-inventory-count",
+        "got": [
+          "train-forecast-tool",
+          "sop-shift-handover"
+        ]
+      },
+      {
+        "q": "What is the fee for an urgent top-up order?",
+        "gold": "sop-supplier-issues",
+        "got": [
+          "sop-delivery-orders",
+          "faq-order-changes",
+          "faq-catering"
+        ]
+      },
+      {
+        "q": "How long without electricity before the lane must be closed?",
+        "gold": "sop-power-outage",
+        "got": [
+          "sop-closing-checklist",
+          "sop-drive-thru-targets",
+          "store-westbrook"
+        ]
+      },
+      {
+        "q": "What do we hand out to guests when the ordering application is down?",
+        "gold": "sop-app-outage",
+        "got": [
+          "sop-delivery-orders",
+          "sop-hygiene-uniform",
+          "faq-order-changes"
+        ]
+      },
+      {
+        "q": "How regularly is limescale removed from the espresso unit?",
+        "gold": "train-coffee-machine",
+        "got": [
+          "policy-offer-terms"
+        ]
+      }
+    ]
+  }
+}
