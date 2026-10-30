@@ -1,5 +1,9 @@
 # QSR GenAI Restaurant Assistant
 
+[![CI](https://github.com/s73hruti/qsr-genai-restaurant-assistant/actions/workflows/ci.yml/badge.svg?branch=main)](https://github.com/s73hruti/qsr-genai-restaurant-assistant/actions/workflows/ci.yml?query=branch%3Amain)
+
+An AI-powered Quick Service Restaurant (QSR) assistant that combines Retrieval-Augmented Generation (RAG), LLM-based tool calling, machine learning models, and guardrails to support restaurant customers and managers.
+
 An AI-powered Quick Service Restaurant (QSR) assistant that combines Retrieval-Augmented Generation (RAG), LLM-based tool calling, machine learning models, and guardrails to support restaurant customers and managers.
 
 The project demonstrates how GenAI and traditional machine learning can work together in a restaurant operations environment.
