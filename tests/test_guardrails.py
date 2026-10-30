@@ -34,6 +34,32 @@ def test_pii_redaction():
     assert redact_pii("card 4111 1111 1111 1111 please")[0] == "card [REDACTED_CARD] please"
 
 
+def test_output_flags_unbalanced_parentheses():
+    malformed = check_output(
+        "If eligible, your refund will be processed (within 3-5 days.",
+        "Refunds are processed within 3-5 days.",
+        "When will I receive my refund?",
+        "customer",
+    )
+    assert "incomplete_formatting" in malformed.flags
+
+    normal = check_output(
+        "If eligible, your refund will be processed (within 3-5 days). [policy-refund]",
+        "Refunds are processed within 3-5 days.",
+        "When will I receive my refund?",
+        "customer",
+    )
+    assert "incomplete_formatting" not in normal.flags
+
+    unmatched_close = check_output(
+        "Your refund will be processed within 3-5 days).",
+        "Refunds are processed within 3-5 days.",
+        "When will I receive my refund?",
+        "customer",
+    )
+    assert "incomplete_formatting" in unmatched_close.flags
+
+
 def test_output_number_grounding():
     ok = check_output("The fries cost $3.40 [menu-large-fries].", "costs $3.40 Category", "price?", "customer")
     assert ok.ok

@@ -64,14 +64,29 @@ def answer_quality(agent: Agent, judge, qa: list[dict], workers: int) -> dict:
     case_rows = []
     for it, r in res:
         correct.append(float(fact_in_text(it["expect"], r.answer)))
-        if not is_abstention(r.answer):  # declining to answer makes no unsupported claims
+
+        faithfulness_score = None
+        faithfulness_status = "not_scored_abstention"
+        if not is_abstention(r.answer):
             f = judge.faithfulness(r.answer, _evidence(r))
             if f is not None:
                 faith.append(f)
+                faithfulness_score = round(float(f), 4)
+                faithfulness_status = "scored"
+            else:
+                faithfulness_status = "unscored_judge_failure_or_empty_result"
+
+        correctness_score = None
+        correctness_status = "not_applicable"
         if judge.name == "llm":
             j = judge.correctness(it["q"], r.answer, it["expect"])
             if j is not None:
                 judged_correct.append(j)
+                correctness_score = round(float(j), 4)
+                correctness_status = "scored"
+            else:
+                correctness_status = "unscored_judge_failure_or_invalid_result"
+
         cited.append(float("[" in r.answer and "]" in r.answer))
         gold_cited.append(float(f"[{it['doc_id']}]" in r.answer))
         abst.append(float(is_abstention(r.answer)))
@@ -81,6 +96,7 @@ def answer_quality(agent: Agent, judge, qa: list[dict], workers: int) -> dict:
         degraded.append(float("->offline" in r.llm_backend))  # set by the agent on provider failure
         case_rows.append({
             "question": it["q"], "reference_fact": it["expect"],
+            "draft_answer": getattr(r, "draft_answer", ""),
             "answer": r.answer, "expected_doc_id": it["doc_id"],
             "cited_doc_ids": sorted({str(src.get("doc_id", "")) for src in r.sources}),
             "citation_chunk_ids": sorted({str(src.get("chunk_id", "")) for src in r.sources}),
@@ -89,6 +105,10 @@ def answer_quality(agent: Agent, judge, qa: list[dict], workers: int) -> dict:
             "latency_ms": r.latency_ms, "usage": r.usage,
             "guardrail_flags": r.guardrails,
             "heuristic_fact_match": bool(fact_in_text(it["expect"], r.answer)),
+            "faithfulness_score": faithfulness_score,
+            "faithfulness_status": faithfulness_status,
+            "correctness_score": correctness_score,
+            "correctness_status": correctness_status,
             "abstained": bool(is_abstention(r.answer)),
         })
     mean = lambda x: round(float(np.mean(x)), 4) if x else None  # noqa: E731
@@ -105,9 +125,10 @@ def answer_quality(agent: Agent, judge, qa: list[dict], workers: int) -> dict:
            # anything above 0 means the "real-LLM" numbers are partly offline numbers
            "degraded_answers_%": pct(mean(degraded)),
            "faithfulness_n_scored": len(faith),
-           "judge_calls": getattr(judge, "calls", 0), "judge_failed_calls": getattr(judge, "failures", 0)}
-    if judged_correct:
-        out["llm_judged_correct_%"] = pct(mean(judged_correct))
+           "correctness_n_scored": len(judged_correct),
+           "llm_judged_correct_%": pct(mean(judged_correct)) if judged_correct else None,
+           "judge_calls": getattr(judge, "calls", 0),
+           "judge_failed_calls": getattr(judge, "failures", 0)}
     out["cases"] = case_rows
     return out, [r for _, r in res]
 
@@ -199,13 +220,35 @@ def conversations(agent: Agent, workers: int) -> dict:
 
 def performance(responses) -> dict:
     lat = [r.latency_ms for r in responses]
-    cost = sum(r.usage.get("cost_usd", 0) for r in responses)
-    return {"latency_ms_p50": round(float(np.percentile(lat, 50)), 1),
-            "latency_ms_p95": round(float(np.percentile(lat, 95)), 1),
-            "avg_llm_calls": round(float(np.mean([r.usage.get("llm_calls", 0) for r in responses])), 2),
-            "avg_input_tokens": round(float(np.mean([r.usage.get("input_tokens", 0) for r in responses])), 1),
-            "avg_output_tokens": round(float(np.mean([r.usage.get("output_tokens", 0) for r in responses])), 1),
-            "estimated_cost_usd_per_100_queries": round(100 * cost / len(responses), 4)}
+    input_tokens = [r.usage.get("input_tokens") for r in responses]
+    output_tokens = [r.usage.get("output_tokens") for r in responses]
+
+    # Zero token totals from a provider that omitted usage are not measurements.
+    usage_available = any(
+        (v or 0) > 0 for v in input_tokens + output_tokens
+    )
+
+    cost = sum(r.usage.get("cost_usd", 0) or 0 for r in responses)
+    return {
+        "latency_ms_p50": round(float(np.percentile(lat, 50)), 1),
+        "latency_ms_p95": round(float(np.percentile(lat, 95)), 1),
+        "avg_llm_calls": round(float(np.mean([
+            r.usage.get("llm_calls", 0) for r in responses
+        ])), 2),
+        "avg_input_tokens": (
+            round(float(np.mean([v or 0 for v in input_tokens])), 1)
+            if usage_available else None
+        ),
+        "avg_output_tokens": (
+            round(float(np.mean([v or 0 for v in output_tokens])), 1)
+            if usage_available else None
+        ),
+        "token_usage_available": usage_available,
+        "estimated_cost_usd_per_100_queries": (
+            round(100 * cost / len(responses), 4)
+            if usage_available and responses else None
+        ),
+    }
 
 
 def summary_md(rep: dict) -> str:
@@ -232,7 +275,17 @@ def summary_md(rep: dict) -> str:
         ("Follow-up answers correct (memory on / off)",
          f"{cv['follow_up_correct_with_memory_%']}% / {cv['follow_up_correct_without_memory_%']}%"),
         ("Latency p50 / p95", f"{pf['latency_ms_p50']} / {pf['latency_ms_p95']} ms"),
-        ("Est. cost per 100 queries", f"${pf['estimated_cost_usd_per_100_queries']}"),
+        ("Average input tokens / query",
+         pf["avg_input_tokens"] if pf["avg_input_tokens"] is not None else "Not captured"),
+        ("Average output tokens / query",
+         pf["avg_output_tokens"] if pf["avg_output_tokens"] is not None else "Not captured"),
+        ("Estimated cost per 100 queries",
+         f"${pf['estimated_cost_usd_per_100_queries']}"
+         if pf["estimated_cost_usd_per_100_queries"] is not None else "Not captured"),
+        ("Correctness judge cases scored",
+         f"{aq.get('correctness_n_scored', 0)} / {aq['n']}"),
+        ("Faithfulness judge cases scored",
+         f"{aq['faithfulness_n_scored']} / {aq['n']}"),
     ]
     return "| Metric | Value |\n|---|---|\n" + "\n".join(f"| {a} | {b} |" for a, b in rows)
 
@@ -258,6 +311,62 @@ def check_thresholds(rep: dict) -> list[str]:
     return fails
 
 
+def reproducibility_metadata(qa, args, llm, judge_llm) -> dict:
+    """Record non-secret fingerprints and configuration for reproducibility."""
+    import hashlib
+    import os
+    import subprocess
+
+    from ..agent import agent as agent_module
+
+    prompt_version = os.getenv("QSR_PROMPT_VERSION", "v2").lower()
+    prompt_text = (
+        getattr(agent_module, f"SYSTEM_PROMPT_{prompt_version.upper()}", None)
+        or getattr(agent_module, "SYSTEM_PROMPT", "")
+    )
+
+    dataset_text = json.dumps(
+        qa, sort_keys=True, ensure_ascii=False, separators=(",", ":")
+    )
+
+    def git_value(*command):
+        try:
+            return subprocess.run(
+                command, capture_output=True, text=True, check=True
+            ).stdout.strip()
+        except Exception:
+            return None
+
+    try:
+        ollama_version = subprocess.run(
+            ["ollama", "--version"], capture_output=True,
+            text=True, timeout=5
+        ).stdout.strip() or None
+    except Exception:
+        ollama_version = None
+
+    return {
+        "prompt_version": prompt_version,
+        "prompt_sha256": (
+            hashlib.sha256(prompt_text.encode("utf-8")).hexdigest()
+            if prompt_text else None
+        ),
+        "evaluation_questions_sha256": hashlib.sha256(
+            dataset_text.encode("utf-8")
+        ).hexdigest(),
+        "git_commit": git_value("git", "rev-parse", "HEAD"),
+        "git_worktree_dirty": bool(git_value("git", "status", "--porcelain")),
+        "ollama_version": ollama_version,
+        "generator_model": getattr(llm, "model", None),
+        "judge_model": getattr(judge_llm, "model", None) if judge_llm else None,
+        "workers": args.workers,
+        "limit": args.limit,
+        "command": sys.argv,
+        "stream_usage_setting": os.getenv("LLM_STREAM_USAGE", "<unset>"),
+        "token_param_setting": os.getenv("LLM_TOKEN_PARAM", "<unset>"),
+    }
+
+
 def main(argv=None) -> int:
     ap = argparse.ArgumentParser()
     ap.add_argument("--llm", choices=["offline", "online"], default="offline")
@@ -265,6 +374,8 @@ def main(argv=None) -> int:
     ap.add_argument("--workers", type=int, default=1)
     ap.add_argument("--check", action="store_true")
     ap.add_argument("--out", default="")
+    ap.add_argument("--no-side-reports", action="store_true",
+                    help="do not write the shared ablation or summary Markdown reports")
     args = ap.parse_args(argv)
 
     llm = get_llm("offline" if args.llm == "offline" else None)
@@ -306,15 +417,17 @@ def main(argv=None) -> int:
         "models": agent.reg.metrics,
         "ablation_rows": ablation["rows"],
         "seconds": round(time.time() - t0, 1),
+        "run_metadata": reproducibility_metadata(qa, args, llm, judge_llm),
     }
     config.REPORTS_DIR.mkdir(exist_ok=True)
     tag = args.llm if args.llm == "offline" else llm.name
     out = Path(args.out) if args.out else config.REPORTS_DIR / f"eval_{tag}.json"
     out.write_text(json.dumps(rep, indent=2))
-    (config.REPORTS_DIR / "ablation.md").write_text(rev.to_markdown(ablation) + "\n\n"
-                                                    + "Hit@3 by document type (default config): "
-                                                    + json.dumps(ablation["by_type_hit@3"]) + "\n")
-    (config.REPORTS_DIR / f"summary_{tag}.md").write_text(summary_md(rep) + "\n")
+    if not args.no_side_reports:
+        (config.REPORTS_DIR / "ablation.md").write_text(rev.to_markdown(ablation) + "\n\n"
+                                                        + "Hit@3 by document type (default config): "
+                                                        + json.dumps(ablation["by_type_hit@3"]) + "\n")
+        (config.REPORTS_DIR / f"summary_{tag}.md").write_text(summary_md(rep) + "\n")
     print(summary_md(rep))
     print(f"\nWrote {out}")
     aq_ = rep["answer_quality"]

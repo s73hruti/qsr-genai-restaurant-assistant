@@ -161,10 +161,32 @@ def _shingles(text: str, n: int) -> set[tuple]:
     return {tuple(t[i:i + n]) for i in range(len(t) - n + 1)}
 
 
+def _has_unbalanced_parentheses(text: str) -> bool:
+    """Detect unmatched parentheses outside square-bracketed citation tags."""
+    depth = 0
+    in_brackets = False
+
+    for char in text:
+        if char == "[":
+            in_brackets = True
+        elif char == "]":
+            in_brackets = False
+        elif not in_brackets and char == "(":
+            depth += 1
+        elif not in_brackets and char == ")":
+            depth -= 1
+            if depth < 0:
+                return True
+
+    return depth != 0
+
+
 def check_output(answer: str, evidence: str, question: str, mode: str,
                  manager_shingles: set[tuple] | None = None,
                  system_prompt: str = "") -> OutputCheck:
     res = OutputCheck()
+    if _has_unbalanced_parentheses(answer):
+        res.flags.append("incomplete_formatting")
     bad = ungrounded_numbers(answer, evidence, question)
     if bad:
         res.ungrounded = bad

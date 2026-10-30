@@ -57,6 +57,31 @@ def test_greeting_needs_no_tools(agent):
     assert r.tools == [] and "help" in r.answer.lower()
 
 
+
+def test_prompt_version_selection_and_environment_default(registry, monkeypatch):
+    monkeypatch.delenv("QSR_PROMPT_VERSION", raising=False)
+    v1 = Agent(registry, ScriptedLLM([text("Hello.")]), prompt_version="v1")
+    v2 = Agent(registry, ScriptedLLM([text("Hello.")]), prompt_version="v2")
+    assert v1.prompt_version == "v1"
+    assert v2.prompt_version == "v2"
+    assert v1.system_prompt == __import__(
+        "qsr_assistant.agent.agent", fromlist=["SYSTEM_PROMPT_V1"]
+    ).SYSTEM_PROMPT_V1
+    assert v2.system_prompt != v1.system_prompt
+
+    default_agent = Agent(registry, ScriptedLLM([text("Hello.")]))
+    assert default_agent.prompt_version == "v2"
+    assert default_agent.system_prompt == v2.system_prompt
+
+    monkeypatch.setenv("QSR_PROMPT_VERSION", "v1")
+    env_agent = Agent(registry, ScriptedLLM([text("Hello.")]))
+    assert env_agent.prompt_version == "v1"
+    assert env_agent.system_prompt == v1.system_prompt
+
+    with pytest.raises(ValueError, match="prompt_version"):
+        Agent(registry, ScriptedLLM([text("Hello.")]), prompt_version="v3")
+
+
 # ---------------------------------------------------------------- guardrails in the loop
 def test_injection_is_blocked_before_any_llm_call(registry):
     llm = ScriptedLLM([text("never used")])
@@ -106,6 +131,56 @@ def test_missing_document_citation_uses_grounded_fallback(registry, monkeypatch)
     assert "answer_replaced" not in r.guardrails["output"]
     assert "$3.40" in r.answer
     assert "[menu-large-fries]" in r.answer
+    assert r.draft_answer == "The Large Fries costs $3.40."
+    assert r.draft_answer != r.answer
+
+
+def test_guarded_draft_can_recover_after_citation_revision(registry):
+    llm = ScriptedLLM([
+        call("search_knowledge", {"query": "large fries price"}),
+        text("The fries are priced at $3.40."),  # paraphrase: not eligible for auto-repair
+        text("The Large Fries costs $3.40 [menu-large-fries]."),
+    ])
+    r = Agent(registry, llm).run("How much are large fries?", "customer")
+
+    assert "$3.40" in r.answer
+    assert "[menu-large-fries]" in r.answer
+    assert "answer_replaced" not in r.guardrails["output"]
+    assert r.draft_answer == "The fries are priced at $3.40."
+    assert len(llm.calls) == 3
+
+
+def test_malformed_bracket_text_triggers_citation_revision(registry):
+    llm = ScriptedLLM([
+        call("search_knowledge", {"query": "large fries price"}),
+        text(
+            "The Large Fries costs $3.40 [1 hour] "
+            "[menu-large-fries]."
+        ),
+        text("The Large Fries costs $3.40 [menu-large-fries]."),
+    ])
+    r = Agent(registry, llm).run("How much are large fries?", "customer")
+
+    assert "[1 hour]" not in r.answer
+    assert "[menu-large-fries]" in r.answer
+    assert "invalid_citation_format" not in r.guardrails["output"]
+    assert "answer_replaced" not in r.guardrails["output"]
+    assert len(llm.calls) == 3
+
+
+def test_guarded_draft_still_falls_back_after_failed_revision(registry):
+    llm = ScriptedLLM([
+        call("search_knowledge", {"query": "large fries price"}),
+        text("The Large Fries costs $9.99 today."),
+        text("The Large Fries costs $9.99 today."),
+    ])
+    r = Agent(registry, llm).run("How much are large fries?", "customer")
+
+    assert "$9.99" not in r.answer
+    assert "$3.40" in r.answer
+    assert "answer_replaced" in r.guardrails["output"]
+    assert "ungrounded_numbers" in r.guardrails["output"]
+    assert len(llm.calls) == 3
 
 
 def test_invalid_document_citation_uses_grounded_fallback(registry, monkeypatch):
