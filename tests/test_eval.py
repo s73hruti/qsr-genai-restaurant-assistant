@@ -46,18 +46,17 @@ def test_evaluate_cli_offline_smoke(tmp_path, monkeypatch, registry):
     rep = json.loads((tmp_path / "e.json").read_text())
     assert rep["routing"]["manager_tool_executed_for_customer"] == 0
     assert rep["redteam"]["manager_info_leaked"] == 0
-    assert (tmp_path / "ablation.md").exists() and (tmp_path / "summary_offline.md").exists()
-
-    (tmp_path / "ablation.md").unlink()
-    (tmp_path / "summary_offline.md").unlink()
-    assert evaluate.main([
-        "--limit", "1",
-        "--out", str(tmp_path / "no_side_reports.json"),
-        "--no-side-reports",
-    ]) == 0
-    assert (tmp_path / "no_side_reports.json").exists()
     assert not (tmp_path / "ablation.md").exists()
     assert not (tmp_path / "summary_offline.md").exists()
+
+    assert evaluate.main([
+        "--limit", "1",
+        "--out", str(tmp_path / "write_side_reports.json"),
+        "--write-side-reports",
+    ]) == 0
+    assert (tmp_path / "write_side_reports.json").exists()
+    assert (tmp_path / "ablation.md").exists()
+    assert (tmp_path / "summary_offline.md").exists()
 
 
 def test_online_eval_without_key_exits_cleanly(monkeypatch):

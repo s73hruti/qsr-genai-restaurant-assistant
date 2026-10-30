@@ -376,6 +376,8 @@ def main(argv=None) -> int:
     ap.add_argument("--out", default="")
     ap.add_argument("--no-side-reports", action="store_true",
                     help="do not write the shared ablation or summary Markdown reports")
+    ap.add_argument("--write-side-reports", action="store_true",
+                    help="also write shared Markdown reports for a limited diagnostic run")
     args = ap.parse_args(argv)
 
     llm = get_llm("offline" if args.llm == "offline" else None)
@@ -423,11 +425,17 @@ def main(argv=None) -> int:
     tag = args.llm if args.llm == "offline" else llm.name
     out = Path(args.out) if args.out else config.REPORTS_DIR / f"eval_{tag}.json"
     out.write_text(json.dumps(rep, indent=2))
-    if not args.no_side_reports:
+    write_side_reports = (
+        not args.no_side_reports
+        and (args.limit == 0 or args.write_side_reports)
+    )
+    if write_side_reports:
         (config.REPORTS_DIR / "ablation.md").write_text(rev.to_markdown(ablation) + "\n\n"
                                                         + "Hit@3 by document type (default config): "
                                                         + json.dumps(ablation["by_type_hit@3"]) + "\n")
         (config.REPORTS_DIR / f"summary_{tag}.md").write_text(summary_md(rep) + "\n")
+    elif args.limit:
+        print("Skipped shared Markdown reports for limited run; use --write-side-reports to opt in.")
     print(summary_md(rep))
     print(f"\nWrote {out}")
     aq_ = rep["answer_quality"]
