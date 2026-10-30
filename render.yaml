@@ -7,9 +7,7 @@ services:
     healthCheckPath: /health
     envVars:
       - key: LLM_BACKEND
-        value: auto
-      - key: ANTHROPIC_API_KEY
-        sync: false          # set in the Render dashboard; omit to run in offline mode
+        value: offline
       - key: MANAGER_API_KEY
         generateValue: true  # required header X-Manager-Key for manager mode
       - key: USER_TOKEN_SECRET
